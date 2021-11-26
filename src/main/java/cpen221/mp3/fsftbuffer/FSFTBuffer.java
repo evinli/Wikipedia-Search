@@ -5,7 +5,7 @@ import cpen221.mp3.exceptions.InvalidObjectException;
 import java.util.HashMap;
 
 /**
- * Insert class abstraction function
+ * A mutable data type that represents a finite-space, finite-time buffer.
  */
 public class FSFTBuffer<T extends Bufferable> {
 
@@ -15,6 +15,21 @@ public class FSFTBuffer<T extends Bufferable> {
     private int maxCapacity;
     private HashMap<String, T> buffer;
     private HashMap<String, Integer> accessTimes;
+
+    /**
+     * Abstraction function:
+     *      AF(buffer.keySet()) = IDs of all objects in the finite-space, finite-time buffer
+     *      AF(buffer.get(identifier)) = the object with ID identifier in the buffer
+     *      AF(accessTime.get(identifier)) = the last time an object with ID identifier was refreshed
+     *      AF(maxTime) = the duration (in seconds) before an object times out in the buffer
+     *      AF(maxCapacity) = the maximum number of objects the buffer can hold
+     */
+
+    /**
+     * Rep invariant (brain dump rn, can reword later):
+     *      for every key in buffer.keySet(), there should exist an identical key in access.keySet()
+     *
+     */
 
     /**
      * Create a buffer with a fixed capacity and a timeout value.
