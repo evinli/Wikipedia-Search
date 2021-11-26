@@ -67,23 +67,27 @@ public class FSFTBuffer<T extends Bufferable> {
         int currentTime = (int) System.currentTimeMillis() / 1000;
         updateBuffer(currentTime);
 
+        if (t == null) {
+            return false;
+        }
+
         // if buffer is full, remove object with oldest time
-        // TODO: sanity check, this should be if and not while... right???
-        if (accessTimes.size() >= maxCapacity) {
+        if (accessTimes.size() == maxCapacity) {
+            // get the last-recently used object id
             String id = accessTimes.entrySet().stream().min((e1, e2) -> e1.getValue() > e2.getValue() ? 1: -1).get().getKey();
             buffer.remove(id);
             accessTimes.remove(id);
         }
 
-        // if value isn't in buffer, add it in with current time and return true
+        // if value is in buffer and hasn't timed out, change nothing
+        // if value isn't in buffer, add it in with current time
         if (!buffer.containsKey((t.id()))) {
             buffer.put(t.id(), t);
             accessTimes.put(t.id(), currentTime);
-            return true;
         }
 
-        // if value is in buffer and hasn't timed out, change nothing and return false
-        return false;
+        // return true to indicate successful add
+        return true;
     }
 
     /**
