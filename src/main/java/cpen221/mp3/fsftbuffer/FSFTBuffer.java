@@ -25,6 +25,7 @@ public class FSFTBuffer<T extends Bufferable> {
      *      AF(maxCapacity) = the maximum number of objects the buffer can hold
      */
 
+    // TODO: since we're not updating the buffer until an operation is called, checkRep() should only be added in select parts of the code
     /**
      * Rep invariant (brain dump rn, can reword later):
      *      for every key in buffer.keySet(), there should exist an identical key in access.keySet()
@@ -64,9 +65,10 @@ public class FSFTBuffer<T extends Bufferable> {
      */
     public boolean put(T t) {
         int currentTime = (int) System.currentTimeMillis() / 1000;
-        updateCache(currentTime);
+        updateBuffer(currentTime);
 
         // if buffer is full, remove object with oldest time
+        // TODO: sanity check, this should be if and not while... right???
         if (accessTimes.size() >= maxCapacity) {
             String id = accessTimes.entrySet().stream().min((e1, e2) -> e1.getValue() > e2.getValue() ? 1: -1).get().getKey();
             buffer.remove(id);
@@ -93,7 +95,7 @@ public class FSFTBuffer<T extends Bufferable> {
      */
     public T get(String id) throws InvalidObjectException {
         int currentTime = (int) System.currentTimeMillis() / 1000;
-        updateCache(currentTime);
+        updateBuffer(currentTime);
 
         if (buffer.containsKey(id)) {
             // renew access time of object t
@@ -115,7 +117,7 @@ public class FSFTBuffer<T extends Bufferable> {
      */
     public boolean touch(String id) {
         int currentTime = (int) System.currentTimeMillis() / 1000;
-        updateCache(currentTime);
+        updateBuffer(currentTime);
 
         if (buffer.containsKey(id)) {
             // renew access time of object t
@@ -135,7 +137,7 @@ public class FSFTBuffer<T extends Bufferable> {
      */
     public boolean update(T t) {
         int currentTime = (int) System.currentTimeMillis() / 1000;
-        updateCache(currentTime);
+        updateBuffer(currentTime);
 
         if (buffer.containsKey(t.id())) {
             // renew access time of object t
@@ -149,7 +151,7 @@ public class FSFTBuffer<T extends Bufferable> {
      * Updates the buffer so that all timed-out objects are removed.
      * @param currentTime the time at which the buffer is accessed
      */
-    private void updateCache(int currentTime) {
+    private void updateBuffer(int currentTime) {
         // remove all timed-out objects
         accessTimes.entrySet().removeIf(e -> e.getValue() + maxTime < currentTime);
         buffer.entrySet().removeIf(e -> !accessTimes.containsKey(e.getKey()));
