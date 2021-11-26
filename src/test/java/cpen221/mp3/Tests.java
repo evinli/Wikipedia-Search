@@ -1,11 +1,13 @@
 package cpen221.mp3;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 public class Tests {
 
-    /*
-        You can add your tests here.
-        Remember to import the packages that you need, such
-        as cpen221.mp3.fsftbuffer.
-     */
+    @Test
+    public void testRun() {
+        Assertions.assertEquals(true,true);
+    }
 
 }

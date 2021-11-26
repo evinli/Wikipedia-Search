@@ -1,14 +1,18 @@
 package cpen221.mp3.fsftbuffer;
 
+import cpen221.mp3.exceptions.InvalidObjectException;
+import java.util.HashMap;
+
+/**
+ * Insert class abstraction function
+ */
 public class FSFTBuffer<T extends Bufferable> {
 
-    /* the default buffer size is 32 objects */
     public static final int DSIZE = 32;
-
-    /* the default timeout value is 3600s */
     public static final int DTIMEOUT = 3600;
-
-    /* TODO: Implement this datatype */
+    private int maxTime;
+    private int maxCapacity;
+    private HashMap<T, Integer> buffer;
 
     /**
      * Create a buffer with a fixed capacity and a timeout value.
@@ -20,7 +24,9 @@ public class FSFTBuffer<T extends Bufferable> {
      *                 be in the buffer before it times out
      */
     public FSFTBuffer(int capacity, int timeout) {
-        // TODO: implement this constructor
+        buffer = new HashMap<>();
+        maxTime = timeout;
+        maxCapacity = capacity;
     }
 
     /**
@@ -34,23 +40,48 @@ public class FSFTBuffer<T extends Bufferable> {
      * Add a value to the buffer.
      * If the buffer is full then remove the least recently accessed
      * object to make room for the new object.
+     *
+     * @param t the value to be added to the buffer
+     * @return true if {@code t} has been successfully added, false otherwise
      */
     public boolean put(T t) {
-        // TODO: implement this method
+        int currentTime = (int) System.currentTimeMillis() / 1000;
+        updateCache(currentTime);
+
+        // if buffer is full, remove object with oldest time
+        if (buffer.size() >= maxCapacity) {
+            buffer.remove(buffer.entrySet().stream().min((e1, e2) -> e1.getValue() < e2.getValue() ? 1: -1).get().getKey());
+        }
+
+        // if value isn't in buffer, add it in with current time and return true
+        if (!buffer.containsKey((t))) {
+            buffer.put(t, currentTime);
+            return true;
+        }
+
+        // if value is in buffer and hasn't timed out, change nothing and return false
         return false;
     }
 
     /**
+     * Retrieves a given object from the buffer based on its identifier.
+     *
      * @param id the identifier of the object to be retrieved
-     * @return the object that matches the identifier from the
-     * buffer
+     * @return the object that matches the identifier from the buffer
+     * @throws InvalidObjectException if there is no such identifier in the buffer
      */
-    public T get(String id) {
-        /* TODO: change this */
-        /* Do not return null. Throw a suitable checked exception when an object
-            is not in the cache. You can add the checked exception to the method
-            signature. */
-        return null;
+    public T get(String id) throws InvalidObjectException {
+        int currentTime = (int) System.currentTimeMillis() / 1000;
+        updateCache(currentTime);
+
+        for (T key : buffer.keySet()) {
+            if (key.id().equals(id)) {
+                // "refresh" the object's access time
+                buffer.put(key, currentTime);
+                return key;
+            }
+        }
+        throw new InvalidObjectException();
     }
 
     /**
@@ -59,10 +90,20 @@ public class FSFTBuffer<T extends Bufferable> {
      * timeout is delayed.
      *
      * @param id the identifier of the object to "touch"
-     * @return true if successful and false otherwise
+     * @return true if successful and false if no object with the provided id
+     * exists in the buffer
      */
     public boolean touch(String id) {
-        /* TODO: Implement this method */
+        int currentTime = (int) System.currentTimeMillis() / 1000;
+        updateCache(currentTime);
+
+        for (T key : buffer.keySet()) {
+            if (key.id().equals(id)) {
+                // "refresh" the object's access time
+                buffer.put(key, currentTime);
+                return true;
+            }
+        }
         return false;
     }
 
@@ -75,7 +116,26 @@ public class FSFTBuffer<T extends Bufferable> {
      * @return true if successful and false otherwise
      */
     public boolean update(T t) {
-        /* TODO: implement this method */
+        int currentTime = (int) System.currentTimeMillis() / 1000;
+        updateCache(currentTime);
+
+        if (buffer.containsKey(t)) {
+            // "refresh" the object's access time
+            buffer.put(t, currentTime);
+            return true;
+        }
         return false;
+    }
+
+    /**
+     * Updates the buffer so that all timed-out objects are removed.
+     * @param currentTime the time at which the buffer is accessed
+     */
+    private void updateCache(int currentTime) {
+        // TODO: need to test if this work or not
+        // remove all timed-out objects
+        buffer.entrySet().stream().filter(e -> e.getValue() + maxTime < currentTime).forEach(e -> {
+            buffer.remove(e.getKey());
+        });
     }
 }
