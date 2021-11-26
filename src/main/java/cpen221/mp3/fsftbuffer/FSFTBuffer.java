@@ -1,6 +1,7 @@
 package cpen221.mp3.fsftbuffer;
 
 import cpen221.mp3.exceptions.InvalidObjectException;
+
 import java.util.HashMap;
 
 /**
@@ -12,7 +13,8 @@ public class FSFTBuffer<T extends Bufferable> {
     public static final int DTIMEOUT = 3600;
     private int maxTime;
     private int maxCapacity;
-    private HashMap<T, Integer> buffer;
+    private HashMap<String, T> buffer;
+    private HashMap<String, Integer> accessTimes;
 
     /**
      * Create a buffer with a fixed capacity and a timeout value.
@@ -25,6 +27,7 @@ public class FSFTBuffer<T extends Bufferable> {
      */
     public FSFTBuffer(int capacity, int timeout) {
         buffer = new HashMap<>();
+        accessTimes = new HashMap<>();
         maxTime = timeout;
         maxCapacity = capacity;
     }
@@ -49,13 +52,16 @@ public class FSFTBuffer<T extends Bufferable> {
         updateCache(currentTime);
 
         // if buffer is full, remove object with oldest time
-        if (buffer.size() >= maxCapacity) {
-            buffer.remove(buffer.entrySet().stream().min((e1, e2) -> e1.getValue() < e2.getValue() ? 1: -1).get().getKey());
+        if (accessTimes.size() >= maxCapacity) {
+            String id = accessTimes.entrySet().stream().min((e1, e2) -> e1.getValue() > e2.getValue() ? 1: -1).get().getKey();
+            buffer.remove(id);
+            accessTimes.remove(id);
         }
 
         // if value isn't in buffer, add it in with current time and return true
-        if (!buffer.containsKey((t))) {
-            buffer.put(t, currentTime);
+        if (!buffer.containsKey((t.id()))) {
+            buffer.put(t.id(), t);
+            accessTimes.put(t.id(), currentTime);
             return true;
         }
 
@@ -74,13 +80,12 @@ public class FSFTBuffer<T extends Bufferable> {
         int currentTime = (int) System.currentTimeMillis() / 1000;
         updateCache(currentTime);
 
-        for (T key : buffer.keySet()) {
-            if (key.id().equals(id)) {
-                // "refresh" the object's access time
-                buffer.put(key, currentTime);
-                return key;
-            }
+        if (buffer.containsKey(id)) {
+            // renew access time of object t
+            accessTimes.put(id, currentTime);
+           return buffer.get(id);
         }
+
         throw new InvalidObjectException();
     }
 
@@ -97,12 +102,10 @@ public class FSFTBuffer<T extends Bufferable> {
         int currentTime = (int) System.currentTimeMillis() / 1000;
         updateCache(currentTime);
 
-        for (T key : buffer.keySet()) {
-            if (key.id().equals(id)) {
-                // "refresh" the object's access time
-                buffer.put(key, currentTime);
-                return true;
-            }
+        if (buffer.containsKey(id)) {
+            // renew access time of object t
+            accessTimes.put(id, currentTime);
+            return true;
         }
         return false;
     }
@@ -113,15 +116,15 @@ public class FSFTBuffer<T extends Bufferable> {
      * renew the object in the cache.
      *
      * @param t the object to update
-     * @return true if successful and false otherwise
+     * @return true if successful and if the object doesn't exist in the buffer
      */
     public boolean update(T t) {
         int currentTime = (int) System.currentTimeMillis() / 1000;
         updateCache(currentTime);
 
-        if (buffer.containsKey(t)) {
-            // "refresh" the object's access time
-            buffer.put(t, currentTime);
+        if (buffer.containsKey(t.id())) {
+            // renew access time of object t
+            accessTimes.put(t.id(), currentTime);
             return true;
         }
         return false;
@@ -132,10 +135,8 @@ public class FSFTBuffer<T extends Bufferable> {
      * @param currentTime the time at which the buffer is accessed
      */
     private void updateCache(int currentTime) {
-        // TODO: need to test if this work or not
         // remove all timed-out objects
-        buffer.entrySet().stream().filter(e -> e.getValue() + maxTime < currentTime).forEach(e -> {
-            buffer.remove(e.getKey());
-        });
+        accessTimes.entrySet().removeIf(e -> e.getValue() + maxTime < currentTime);
+        buffer.entrySet().removeIf(e -> !accessTimes.containsKey(e.getKey()));
     }
 }
