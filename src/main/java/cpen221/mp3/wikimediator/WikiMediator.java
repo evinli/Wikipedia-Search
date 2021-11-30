@@ -1,24 +1,26 @@
 package cpen221.mp3.wikimediator;
 
 import cpen221.mp3.exceptions.InvalidObjectException;
-import cpen221.mp3.fsftbuffer.Bufferable;
 import cpen221.mp3.fsftbuffer.FSFTBuffer;
 import org.fastily.jwiki.core.Wiki;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class WikiMediator {
     FSFTBuffer cache;
     Wiki wiki;
-
-
+    HashMap<String, ArrayList> pageSearches; //stores timestamps for search and get queries
+    ArrayList methodsCalls; // stores tiemstamps for all method calls
+    Long StartTime;
 
 
     public WikiMediator(int capacity, int stalenessInterval){
         Wiki wiki = new Wiki.Builder().withDomain("en.wikipedia.org").build();
         cache = new FSFTBuffer(capacity, stalenessInterval);
+        StartTime = System.currentTimeMillis() / 1000L;
     }
 
     /**
@@ -30,14 +32,21 @@ public class WikiMediator {
      */
     public List<String> search(String query, int limit){
         List<String> matches = new ArrayList<>();
-        Object results = new Object();
-        try {
-            results =  cache.get(query);
 
-        } catch (InvalidObjectException e) {
-            e.printStackTrace();
-            matches = wiki.search(query, limit)
-        }
+            matches = wiki.search(query, limit);
+
+            //adds the timestamp of the request to the hasmap pageSearches
+            if(pageSearches.containsKey(query)){
+                pageSearches.get(query).add(System.currentTimeMillis() / 1000L - StartTime);
+            }
+            else{
+                pageSearches.put(query, new ArrayList());
+                pageSearches.get(query).add(System.currentTimeMillis() / 1000L - StartTime);
+            }
+            if(methodsCalls.contains(query)){
+
+            }
+
         return matches;
     }
 
@@ -49,20 +58,45 @@ public class WikiMediator {
     public String getPage(String pageTitle){
         String text = new String();
 
-        text = wiki.getPageText(pageTitle);
+        try{
+            text = cache.get(pageTitle).toString();
+
+        } catch (InvalidObjectException e) {
+            e.printStackTrace();
+            text = wiki.getPageText(pageTitle);
+        }
+
+        if(pageSearches.containsKey(pageTitle)){
+            pageSearches.get(pageTitle).add(System.currentTimeMillis() / 1000L - StartTime);
+        }
+        else{
+            pageSearches.put(pageTitle, new ArrayList());
+            pageSearches.get(pageTitle).add(System.currentTimeMillis() / 1000L - StartTime);
+        }
+
         return text;
     }
 
     /**
-     * Most common strings used in searchand getpage requests,
+     * Most common strings used in search and getpage requests,
      * with items being sorted in non-increasing count order.
      * Return only limit items
      *
      * @param limit
      * @return
      */
-    public List<String> zeitgeist(int limit){
-        List<String> mostCommon= new ArrayList<String>();
+    public List<Map.Entry<String, Integer>> zeitgeist(int limit){
+        List<Map.Entry<String, Integer>> mostCommon= new ArrayList<>();
+        HashMap<String, Integer> reduced = new HashMap<String, Integer>();
+
+        for (Map.Entry<String, ArrayList> entry : pageSearches.entrySet()) {
+            String k = entry.getKey();
+            ArrayList v = entry.getValue();
+            reduced.put(k, v.size());
+        }
+
+        mostCommon = reduced.entrySet().stream().sorted(Map.Entry.<String, Integer>comparingByValue()).limit(limit).toList();
+
 
         return mostCommon;
     }
@@ -78,6 +112,7 @@ public class WikiMediator {
      */
     public List<String> trending(int timeLimitInSeconds, int maxItems){
         List<String> mostFrequent = new ArrayList<>();
+
 
         return mostFrequent;
     }

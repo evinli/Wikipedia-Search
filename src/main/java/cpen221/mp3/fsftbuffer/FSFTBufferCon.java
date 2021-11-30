@@ -79,11 +79,11 @@ public class FSFTBufferCon<T extends Bufferable> {
                 buffer.remove(id);
                 accessTimes.remove(id);
             }
-        }
+
 
         // if value is in buffer and hasn't timed out, change nothing
         // if value isn't in buffer, add it in with current time
-        synchronized (this) {
+
             if (!buffer.containsKey((t.id()))) {
                 buffer.put(t.id(), t);
                 accessTimes.put(t.id(), currentTime);
@@ -150,9 +150,10 @@ public class FSFTBufferCon<T extends Bufferable> {
      */
     public boolean update(T t) {
         int currentTime = (int) System.currentTimeMillis() / 1000;
-        updateBuffer(currentTime);
 
         synchronized (this){
+            updateBuffer(currentTime);
+
             if (buffer.containsKey(t.id())) {
                 // renew access time of object t
                 accessTimes.put(t.id(), currentTime);
