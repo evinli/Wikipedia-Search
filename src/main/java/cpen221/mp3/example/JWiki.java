@@ -18,7 +18,7 @@ public class JWiki {
     public static void main(String[] args) {
         Wiki wiki = new Wiki.Builder().withDomain("en.wikipedia.org").build();
         String pageTitle = "Barack Obama";
-//        System.out.println(wiki.getPageText("Main Page"));
+        System.out.println(wiki.getPageText("Barack Obama"));
 //        System.out.println(wiki.getCategoriesOnPage(pageTitle));
 //        System.out.println(wiki.getLinksOnPage(pageTitle));
         System.out.println(wiki.search("Hello", 10));
