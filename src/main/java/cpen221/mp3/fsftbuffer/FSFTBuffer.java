@@ -3,6 +3,7 @@ package cpen221.mp3.fsftbuffer;
 import cpen221.mp3.exceptions.InvalidObjectException;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * A mutable data type that represents a finite-space, finite-time buffer.
@@ -14,9 +15,9 @@ public class FSFTBuffer<T extends Bufferable> {
     private static final int CONVERT_MS_TO_S = 1000;
     private int maxTime;
     private int maxCapacity;
-    private Stack<T> buffer; //tracks objects in order of most (top of stack) to least (bottom) recently "used"
-    private HashMap<String, T> bufferItems; //look-up table for objects given an object ID
-    private HashMap<String, Integer> accessTimes; //look-up table for latest refresh time given an object ID
+    private Stack<T> buffer; // tracks objects in order of usage time (top of stack = most recently used)
+    private HashMap<String, T> bufferItems; // look-up table for objects given an object ID
+    private HashMap<String, Integer> accessTimes; // look-up table for latest access time given an object ID
 
     /**
      * Abstraction function:
@@ -27,23 +28,25 @@ public class FSFTBuffer<T extends Bufferable> {
      *      AF(maxCapacity) = the maximum number of objects the buffer can hold
      */
 
-    // TODO: since we're not updating the buffer until an operation is
-    //  called, checkRep() should only be added in select parts of the code
     /**
-     * Rep invariant (brain dump rn, can reword later):
-     *      For every object in buffer, there should be a key corresponding
+     * Rep invariant:
+     *      for every object in buffer, there should be a key corresponding
      *          to object.id() that exists both within bufferItems.keySet() and accessTimes.keySet()
+     *      buffer contains no duplicate objects
      */
 
-    private boolean checkRep() {
-        boolean repIntact = true;
-//        for (Key key : timestamps.keySet()) {
-//            List<Integer> times = new ArrayList<>(timestamps.get(key));
-//            for (int i = 1; i < times.size(); i++) {
-//                assert (times.get(i - 1) <= times.get(i));
-//            }
-//        }
-        return repIntact;
+    /**
+     * Check that the rep invariant is true.
+     *
+     * @return true if representation invariant is preserved
+     */
+    private void checkRep() {
+        for (T object : buffer) {
+            assert (bufferItems.containsKey(object.id()));
+            assert (accessTimes.containsKey(object.id()));
+        }
+        assert (buffer.stream().distinct().collect(Collectors.
+                toCollection(ArrayList::new)).size() == buffer.size());
     }
 
     /**
@@ -73,7 +76,10 @@ public class FSFTBuffer<T extends Bufferable> {
     /**
      * Add a object to the buffer.
      * If the buffer is full then remove the least recently used
-     * object to make room for the new object.
+     * object to make room for the new object. Note that repeated
+     * "puts" of an object already in the buffer do not
+     * refresh its access time, usage time nor does it update the
+     * actual object itself in the buffer.
      *
      * @param t the object to be added to the buffer
      * @return true if {@code t} has been successfully added, false otherwise
@@ -108,7 +114,9 @@ public class FSFTBuffer<T extends Bufferable> {
     }
 
     /**
-     * Retrieves a given object from the buffer based on its identifier.
+     * Retrieves a given object from the buffer based on its identifier. Note
+     * that repeated "gets" of an object affects its usage time, but not its
+     * access time.
      *
      * @param id the identifier of the object to be retrieved
      * @return the object that matches the identifier from the buffer
@@ -119,7 +127,8 @@ public class FSFTBuffer<T extends Bufferable> {
         updateBuffer(currentTime);
 
         if (bufferItems.containsKey(id)) {
-            // push object to top of buffer stack to update LRU status
+            // move object to top of buffer stack to update LRU status
+            buffer.remove(buffer.indexOf(bufferItems.get(id)));
             buffer.push(bufferItems.get(id));
             checkRep();
             return buffer.peek();
@@ -128,9 +137,9 @@ public class FSFTBuffer<T extends Bufferable> {
     }
 
     /**
-     * Update the last refresh time for the object with the provided id.
-     * This method is used to mark an object as "not stale" so that its
-     * timeout is delayed.
+     * Update the last access time for the object with the provided id so as to
+     * extend its absolute timeout time. Note that repeated "touches" of an object
+     * affect its access time, but not its usage time.
      *
      * @param id the identifier of the object to "touch"
      * @return true if successful and false if no object with the provided id
@@ -150,8 +159,9 @@ public class FSFTBuffer<T extends Bufferable> {
 
     /**
      * Update an object in the buffer.
-     * This method updates an object and acts like a "touch" to
-     * renew the object in the cache.
+     * This method updates an object and also acts like a "touch" to
+     * renew the object in the cache. Note that repeated "updates" of
+     * an object affect its access time, but not its usage time.
      *
      * @param t the object to update
      * @return true if successful and if the object doesn't exist in the buffer
