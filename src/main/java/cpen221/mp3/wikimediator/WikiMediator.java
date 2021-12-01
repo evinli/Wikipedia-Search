@@ -21,6 +21,8 @@ public class WikiMediator {
         Wiki wiki = new Wiki.Builder().withDomain("en.wikipedia.org").build();
         cache = new FSFTBuffer(capacity, stalenessInterval);
         StartTime = System.currentTimeMillis() / 1000L;
+        pageSearches = new HashMap<String, ArrayList>();
+        methodsCalls = new ArrayList<Integer>();
     }
 
     /**
@@ -37,15 +39,15 @@ public class WikiMediator {
 
             //adds the timestamp of the request to the hasmap pageSearches
             if(pageSearches.containsKey(query)){
-                pageSearches.get(query).add(System.currentTimeMillis() / 1000L - StartTime);
+                pageSearches.get(query).add((int)(System.currentTimeMillis() / 1000L - StartTime));
+                methodsCalls.add((int)(System.currentTimeMillis() / 1000L - StartTime));
             }
             else{
                 pageSearches.put(query, new ArrayList());
-                pageSearches.get(query).add(System.currentTimeMillis() / 1000L - StartTime);
+                pageSearches.get(query).add((int)(System.currentTimeMillis() / 1000L - StartTime));
+                methodsCalls.add((int)(System.currentTimeMillis() / 1000L - StartTime));
             }
-            if(methodsCalls.contains(query)){
 
-            }
 
         return matches;
     }
@@ -67,11 +69,13 @@ public class WikiMediator {
         }
 
         if(pageSearches.containsKey(pageTitle)){
-            pageSearches.get(pageTitle).add(System.currentTimeMillis() / 1000L - StartTime);
+            pageSearches.get(pageTitle).add((int)(System.currentTimeMillis() / 1000L - StartTime));
+            methodsCalls.add((int)(System.currentTimeMillis() / 1000L - StartTime));
         }
         else{
             pageSearches.put(pageTitle, new ArrayList());
-            pageSearches.get(pageTitle).add(System.currentTimeMillis() / 1000L - StartTime);
+            pageSearches.get(pageTitle).add((int)(System.currentTimeMillis() / 1000L - StartTime));
+            methodsCalls.add((int)(System.currentTimeMillis() / 1000L - StartTime));
         }
 
         return text;
@@ -114,6 +118,7 @@ public class WikiMediator {
         List<String> mostFrequent = new ArrayList<>();
 
 
+
         return mostFrequent;
     }
 
@@ -126,7 +131,21 @@ public class WikiMediator {
      */
     public int windowedPeakLoad(int timeWindowInSeconds){
         int maxRequest = 0;
+        int tempMax = 0;
+        for(int i = 0; i < methodsCalls.size(); i++){
+            for(int j = i; j < methodsCalls.size(); j++){
+                int valueJ = (int) methodsCalls.get(j);
+                int valueI = (int) methodsCalls.get(i);
 
+                if((valueJ - valueI) > timeWindowInSeconds){
+                    if(((j - 1) - i) > tempMax){
+                        tempMax = ((j - 1) - i);
+                    }
+                    break;
+                }
+            }
+        }
+        maxRequest = tempMax;
         return maxRequest;
     }
 
