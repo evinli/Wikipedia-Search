@@ -19,6 +19,9 @@ public class FSFTBuffer<T extends Bufferable> {
     private HashMap<String, T> bufferItems; // look-up table for objects given an object ID
     private HashMap<String, Integer> accessTimes; // look-up table for latest access time given an object ID
 
+    //TODO: note to self - access time determines how long before an object times out
+    //                   - usage time determines which non-timed-out object should be evicted first when the buffer is full
+
     /**
      * Abstraction function:
      *      AF(buffer) = all objects in the finite-space, finite-time buffer
