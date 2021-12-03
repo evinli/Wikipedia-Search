@@ -1,5 +1,6 @@
 package cpen221.mp3;
 
+import cpen221.mp3.wikimediator.WikiPage;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
