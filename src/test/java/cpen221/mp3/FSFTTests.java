@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 
-public class Tests {
+public class FSFTTests {
 
     @Test
     public void testRun() {
