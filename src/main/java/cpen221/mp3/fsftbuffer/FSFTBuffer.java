@@ -95,24 +95,26 @@ public class FSFTBuffer<T extends Bufferable> {
             checkRep();
             return false;
         }
+        synchronized (this) {
+            // if buffer is full, remove least-recently-used (LRU) object @bottom of buffer stack
+            if (buffer.size() == maxCapacity) {
+                buffer.remove(0);
+                bufferItems.remove(t.id());
+                accessTimes.remove(t.id());
+            }
 
-        // if buffer is full, remove least-recently-used (LRU) object @bottom of buffer stack
-        if (buffer.size() == maxCapacity) {
-            buffer.remove(0);
-            bufferItems.remove(t.id());
-            accessTimes.remove(t.id());
+            // if object is in buffer and hasn't timed out, change nothing
+            // if object isn't in buffer, add it in with the current time and push to top of buffer stack
+            if (!buffer.contains(t)) {
+                bufferItems.put(t.id(), t);
+                accessTimes.put(t.id(), currentTime);
+                buffer.push(t);
+            }
+
+
+            // return true to indicate successful add
+            checkRep();
         }
-
-        // if object is in buffer and hasn't timed out, change nothing
-        // if object isn't in buffer, add it in with the current time and push to top of buffer stack
-        if (!buffer.contains(t)) {
-            bufferItems.put(t.id(), t);
-            accessTimes.put(t.id(), currentTime);
-            buffer.push(t);
-        }
-
-        // return true to indicate successful add
-        checkRep();
         return true;
     }
 
@@ -129,12 +131,14 @@ public class FSFTBuffer<T extends Bufferable> {
         int currentTime = (int) System.currentTimeMillis() / CONVERT_MS_TO_S;
         updateBuffer(currentTime);
 
-        if (bufferItems.containsKey(id)) {
-            // move object to top of buffer stack to update LRU status
-            buffer.remove(buffer.indexOf(bufferItems.get(id)));
-            buffer.push(bufferItems.get(id));
-            checkRep();
-            return buffer.peek();
+        synchronized (this) {
+            if (bufferItems.containsKey(id)) {
+                // move object to top of buffer stack to update LRU status
+                buffer.remove(buffer.indexOf(bufferItems.get(id)));
+                buffer.push(bufferItems.get(id));
+                checkRep();
+                return buffer.peek();
+            }
         }
         throw new InvalidObjectException();
     }
@@ -152,10 +156,12 @@ public class FSFTBuffer<T extends Bufferable> {
         int currentTime = (int) System.currentTimeMillis() / CONVERT_MS_TO_S;
         updateBuffer(currentTime);
 
-        if (bufferItems.containsKey(id)) {
-            // renew access time of object t
-            accessTimes.put(id, currentTime);
-            return true;
+        synchronized (this) {
+            if (bufferItems.containsKey(id)) {
+                // renew access time of object t
+                accessTimes.put(id, currentTime);
+                return true;
+            }
         }
         return false;
     }
@@ -173,13 +179,15 @@ public class FSFTBuffer<T extends Bufferable> {
         int currentTime = (int) System.currentTimeMillis() / CONVERT_MS_TO_S;
         updateBuffer(currentTime);
 
-        if (bufferItems.containsKey(t.id())) {
-            //update existing object t in buffer and renew access time
-            buffer.set(buffer.indexOf(bufferItems.get(t.id())),t);
-            bufferItems.put(t.id(), t);
-            accessTimes.put(t.id(), currentTime);
-            checkRep();
-            return true;
+        synchronized (this) {
+            if (bufferItems.containsKey(t.id())) {
+                //update existing object t in buffer and renew access time
+                buffer.set(buffer.indexOf(bufferItems.get(t.id())), t);
+                bufferItems.put(t.id(), t);
+                accessTimes.put(t.id(), currentTime);
+                checkRep();
+                return true;
+            }
         }
         return false;
     }
@@ -191,9 +199,11 @@ public class FSFTBuffer<T extends Bufferable> {
      */
     private void updateBuffer(int currentTime) {
         // remove all timed-out objects
-        accessTimes.entrySet().removeIf(o -> o.getValue() + maxTime < currentTime);
-        bufferItems.entrySet().removeIf(o -> !accessTimes.containsKey(o.getKey()));
-        buffer.removeIf(o -> !bufferItems.containsValue(o));
-        checkRep();
+        synchronized (this) {
+            accessTimes.entrySet().removeIf(o -> o.getValue() + maxTime < currentTime);
+            bufferItems.entrySet().removeIf(o -> !accessTimes.containsKey(o.getKey()));
+            buffer.removeIf(o -> !bufferItems.containsValue(o));
+            checkRep();
+        }
     }
 }
