@@ -7,20 +7,43 @@ public class WikiPage implements Bufferable {
     public String PageName;
     public String PageText;
 
+    /**
+     * Abstraction function:
+     *      AF(PageName) = String ID of the page
+     *      AF(PageText) = text of the wikipedia page
+     */
+
+    /**
+     * Rep invariant:
+     *      PageName and PageText != null
+     */
+
+    /**
+     * Creates a WikiPage given a page name
+     *
+     * @param stringID page name of a wikipedia page
+     */
     public WikiPage(String stringID){
         Wiki wiki = new Wiki.Builder().withDomain("en.wikipedia.org").build();
         this.PageName = stringID;
         this.PageText = wiki.getPageText(stringID);
     }
 
-    public boolean equals(WikiPage o){
-        if(this.id().equals(o.id())){
+    @Override
+    public boolean equals(Object o){
+        WikiPage page = (WikiPage) o;
+        if(this.id().equals(page.id())){
             return true;
         }
         return false;
     }
-    @Override
+
     public String id() {
         return PageName;
     }
+
+//    @Override
+//    public int hashCode() {
+//        return ;
+//    }
 }

@@ -16,10 +16,32 @@ public class WikiMediator {
     Wiki wiki = new Wiki.Builder().withDomain("en.wikipedia.org").build();
     FSFTBuffer cache;
     HashMap<String, ArrayList> pageSearches; //stores timestamps for search and get queries
-    ArrayList methodsCalls; // stores tiemstamps for all method calls
+    ArrayList methodsCalls; // stores timestamps for all method calls
     Integer StartTime;
 
+    /**
+     * Abstraction function:
+     *      AF(cache) = Cache that holds wikipedia page for a specified time window
+     *      AF(cache.keySet()) = all the page names of wikipedia pages stored in the cache
+     *      AF(pageSearches) = holds timestamps for search and get queries
+     *      AF(pageSearches.keySet()) = all the page names of wikipedia pages used in search or getpage
+     *      AF(methodCalls) = stores timestamps for all method calls
+     *      AF(methodCalls.size()) = the total number of method calls
+     *      AF(StartTime) = reference time = 0
+     */
 
+    /**
+     * Rep invariant:
+     *      every object in the Wikimediator cache is a Wikipage
+     *      every timestamp in pageSearches also exists in methodCalls
+     */
+
+    /**
+     * Creates a WikiMediator that acts as a cache for wikipedia pages
+     *
+     * @param capacity the maximum number of items the WikiMediator can store
+     * @param stalenessInterval the time it takes for a page to become stale in the WikiMediator
+     */
 
     public WikiMediator(int capacity, int stalenessInterval){
         cache = new FSFTBuffer(capacity, stalenessInterval);
@@ -33,8 +55,8 @@ public class WikiMediator {
      * Given a query, return up to limit page titles that match the query string
      * (per Wikipedia's search service).
      * @param query
-     * @param limit
-     * @return
+     * @param limit the max number of page titles it can return
+     * @return List of up to limit page titles that match the query string
      */
     public List<String> search(String query, int limit){
         List<String> matches = new ArrayList<>();
@@ -57,9 +79,8 @@ public class WikiMediator {
     }
 
     /**
-     * Given a pageTitle, return the text associated with the Wikipedia page that matches pageTitle.
      * @param pageTitle
-     * @return
+     * @return the text associated with the Wikipedia page that matches pageTitle.
      */
     public synchronized String getPage(String pageTitle){
         String text = new String();
@@ -88,12 +109,11 @@ public class WikiMediator {
     }
 
     /**
-     * Most common strings used in search and getpage requests,
-     * with items being sorted in non-increasing count order.
      * Return only limit items
      *
-     * @param limit
-     * @return
+     * @param limit the number of items the list should contain
+     * @return list of most common strings used in search and getpage requests
+     * with items being sorted in non-increasing count order
      */
     public List<String> zeitgeist(int limit){
         List<String> mostCommon= new ArrayList<>();
@@ -118,13 +138,12 @@ public class WikiMediator {
 
 
     /**
-     * returns list of most frequent requests made in last timelimitinseconds seconds,
      * items are sorted in non-increasing count order. report at most maxItems of the most
      * frequent requests
      *
      * @param timeLimitInSeconds
-     * @param maxItems
-     * @return
+     * @param maxItems number of items the list should contain
+     * @return returns list of most frequent requests made in last timelimitinseconds seconds
      */
     public List<String> trending(int timeLimitInSeconds, int maxItems){
         List<String> mostFrequent = new ArrayList<>();
@@ -153,19 +172,16 @@ public class WikiMediator {
             methodsCalls.add((int) (System.currentTimeMillis() / 1000L - StartTime));
         }
 
-        mostFrequent = reduced.entrySet().stream().sorted(Map.Entry.<String, Integer>comparingByValue().reversed()).limit(maxItems).map(e -> e.getKey())
-                .collect(Collectors.toList());
-
+        mostFrequent = reduced.entrySet().stream().sorted(Map.Entry.<String, Integer>comparingByValue().reversed()).limit(maxItems).map(e -> e.getKey()).collect(Collectors.toList());
 
         return mostFrequent;
     }
 
     /**
-     * returns maximum number of requests seen at anytime window of a given length,
      * request count includes all request made using WikiMediator. Counts all 5 methods listed as basic page
      * requests
      * @param timeWindowInSeconds
-     * @return
+     * @return the maximum number of requests seen at any time window of a given length
      */
     public int windowedPeakLoad(int timeWindowInSeconds){
         int maxRequest = 0;
@@ -196,22 +212,15 @@ public class WikiMediator {
     }
  //TODO
     //does peak load count itself
-
+    /**
+     * request count includes all request made using WikiMediator. Counts all 5 methods listed as basic page
+     * requests
+     * @return the maximum number of requests seen at any time window of 30 seconds
+     */
     public int windowedPeakLoad(){
 
         return windowedPeakLoad(30);
     }
 
-    /* TODO: Implement this datatype
-
-        You must implement the methods with the exact signatures
-        as provided in the statement for this mini-project.
-
-        You must add method signatures even for the methods that you
-        do not plan to implement. You should provide skeleton implementation
-        for those methods, and the skeleton implementation could return
-        values like null.
-
-     */
 
 }
