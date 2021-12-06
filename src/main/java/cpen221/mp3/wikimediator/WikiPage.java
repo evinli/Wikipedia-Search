@@ -3,30 +3,51 @@ package cpen221.mp3.wikimediator;
 import cpen221.mp3.fsftbuffer.Bufferable;
 import org.fastily.jwiki.core.Wiki;
 
+/**
+ * An immutable data type that represents a wikipedia page.
+ */
 public class WikiPage implements Bufferable {
-    public String PageName;
-    public String PageText;
+    private String pageName;
+    private String pageText;
 
     /**
      * Abstraction function:
-     *      AF(PageName) = String ID of the page
-     *      AF(PageText) = text of the wikipedia page
+     *      AF(pageName) = wikipedia page name
+     *      AF(pageText) = text contained on the wikipedia page
      */
 
     /**
      * Rep invariant:
-     *      PageName and PageText != null
+     *      pageName and pageText != null
      */
 
     /**
-     * Creates a WikiPage given a page name
+     * Creates a WikiPage object given a page name.
      *
-     * @param stringID page name of a wikipedia page
+     * @param stringID name of the wikipedia page
      */
     public WikiPage(String stringID){
         Wiki wiki = new Wiki.Builder().withDomain("en.wikipedia.org").build();
-        this.PageName = stringID;
-        this.PageText = wiki.getPageText(stringID);
+        this.pageName = stringID;
+        this.pageText = wiki.getPageText(stringID);
+    }
+
+    /**
+     * Returns the page name associated with the WikiPage object.
+     *
+     * @return a String representing the wikipedia page name
+     */
+    public String id() {
+        return pageName;
+    }
+
+    /**
+     * Returns the page text associated with the WikiPage object.
+     *
+     * @return a String representing the text contained on a wikipedia page
+     */
+    public String text() {
+        return pageText;
     }
 
     @Override
@@ -38,12 +59,8 @@ public class WikiPage implements Bufferable {
         return false;
     }
 
-    public String id() {
-        return PageName;
+    @Override
+    public int hashCode() {
+        return pageName.hashCode()^ pageText.hashCode();
     }
-
-//    @Override
-//    public int hashCode() {
-//        return ;
-//    }
 }

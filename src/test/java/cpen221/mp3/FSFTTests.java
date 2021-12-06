@@ -1,6 +1,5 @@
 package cpen221.mp3;
 
-import cpen221.mp3.wikimediator.WikiPage;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -42,5 +41,31 @@ public class FSFTTests {
         }
 
         Assertions.assertEquals(true,true);
+    }
+
+    @Test
+    public void testUpdate() {
+
+    }
+
+    @Test
+    public void testPut() {
+
+    }
+
+    @Test
+    public void testGet() {
+
+    }
+
+    @Test
+    public void testTouch() {
+
+    }
+
+    // get rid of later on
+    @Test
+    public void testUpdateBuffer() {
+
     }
 }

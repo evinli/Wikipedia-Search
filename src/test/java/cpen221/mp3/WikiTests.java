@@ -2,15 +2,11 @@ package cpen221.mp3;
 
 import cpen221.mp3.wikimediator.WikiMediator;
 import cpen221.mp3.wikimediator.WikiPage;
-import org.fastily.jwiki.core.Wiki;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 public class WikiTests {
