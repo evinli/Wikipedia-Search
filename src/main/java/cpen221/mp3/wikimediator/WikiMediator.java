@@ -1,13 +1,14 @@
 package cpen221.mp3.wikimediator;
 
+import com.google.gson.Gson;
 import cpen221.mp3.exceptions.InvalidObjectException;
 import cpen221.mp3.fsftbuffer.FSFTBuffer;
 import org.fastily.jwiki.core.Wiki;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -19,13 +20,29 @@ public class WikiMediator {
     ArrayList methodsCalls; // stores tiemstamps for all method calls
     Integer StartTime;
 
+    class WikiMediatorData {
+        private HashMap<String, ArrayList> pageSearch;
+        private ArrayList methodCall;
 
+        public WikiMediatorData(HashMap<String, ArrayList> pageSearch, ArrayList methodCall) {
+            this.pageSearch = pageSearch;
+            this.methodCall = methodCall;
+        }
+    }
 
     public WikiMediator(int capacity, int stalenessInterval){
+        try {
+            Gson gson = new Gson();
+            String oldData = new Scanner(new File("local/WikiMediatorSave.txt")).useDelimiter("\\Z").next();
+            WikiMediatorData wd = gson.fromJson(oldData, WikiMediatorData.class);
+            pageSearches = wd.pageSearch;
+            methodsCalls = wd.methodCall;
+        } catch (Exception e) {
+            pageSearches = new HashMap<String, ArrayList>();
+            methodsCalls = new ArrayList<Integer>();
+        }
         cache = new FSFTBuffer(capacity, stalenessInterval);
         StartTime = (int)(System.currentTimeMillis() / 1000L);
-        pageSearches = new HashMap<String, ArrayList>();
-        methodsCalls = new ArrayList<Integer>();
     }
 
 
@@ -202,16 +219,15 @@ public class WikiMediator {
         return windowedPeakLoad(30);
     }
 
-    /* TODO: Implement this datatype
-
-        You must implement the methods with the exact signatures
-        as provided in the statement for this mini-project.
-
-        You must add method signatures even for the methods that you
-        do not plan to implement. You should provide skeleton implementation
-        for those methods, and the skeleton implementation could return
-        values like null.
-
-     */
+    public void stop() {
+        Gson gson = new Gson();
+        WikiMediatorData wd = new WikiMediatorData(this.pageSearches,this.methodsCalls);
+        String json = gson.toJson(wd);
+        try (PrintWriter out = new PrintWriter("local/WikiMediatorSave.txt")) {
+            out.println(json);
+        } catch (IOException e) {
+            throw new RuntimeException("Error writing to file");
+        }
+    }
 
 }
