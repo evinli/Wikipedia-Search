@@ -1,26 +1,50 @@
 package cpen221.mp3.fsftbuffer;
 
-import cpen221.mp3.wikimediator.WikiPage;
-import org.fastily.jwiki.core.Wiki;
+/**
+ * An immutable data type that represents a general bufferable object.
+ */
+public class Buffer implements Bufferable {
+    private String id;
 
-public class Buffer implements Bufferable{
-    public String PageName;
-    public String PageText;
+    /**
+     * Abstraction function:
+     *      AF(id) = identifier for the general bufferable object
+     */
 
+    /**
+     * Rep invariant:
+     *      id != null
+     */
+
+    /**
+     * Creates a Buffer object given an identifier.
+     *
+     * @param stringID identifier for the Buffer object
+     */
     public Buffer(String stringID){
-        Wiki wiki = new Wiki.Builder().withDomain("en.wikipedia.org").build();
-        this.PageName = stringID;
-        this.PageText = wiki.getPageText(stringID);
+        this.id = stringID;
     }
 
-    public boolean equals(WikiPage o){
-        if(this.id().equals(o.id())){
-            return true;
-        }
-        return false;
-    }
-    @Override
+    /**
+     * Returns the identifier associated with the Buffer object.
+     *
+     * @return a String representing the Buffer identifier
+     */
     public String id() {
-        return PageName;
+        return this.id;
+    }
+
+    @Override
+    public boolean equals(Object o){
+        if (this == o) return true;
+        if (!(o instanceof Buffer)) return false;
+
+        Buffer buffer = (Buffer) o;
+        return this.id.equals(buffer.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
     }
 }

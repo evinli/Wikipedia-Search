@@ -1,7 +1,6 @@
 package cpen221.mp3.fsftbuffer;
 
 import cpen221.mp3.exceptions.InvalidObjectException;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -40,8 +39,6 @@ public class FSFTBuffer<T extends Bufferable> {
 
     /**
      * Check that the rep invariant is true.
-     *
-     * @return true if representation invariant is preserved
      */
     private void checkRep() {
         for (T object : buffer) {

@@ -50,13 +50,14 @@ public class WikiPage implements Bufferable {
         return pageText;
     }
 
+    //TODO: should we equate the pageText or pageName? Is pageText safer since pageName might not be unique?
     @Override
     public boolean equals(Object o){
+        if (this == o) return true;
+        if (!(o instanceof WikiPage)) return false;
+
         WikiPage page = (WikiPage) o;
-        if(this.id().equals(page.id())){
-            return true;
-        }
-        return false;
+        return this.pageText.equals(page.pageText);
     }
 
     @Override
