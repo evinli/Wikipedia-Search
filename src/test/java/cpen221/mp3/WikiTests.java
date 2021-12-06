@@ -32,7 +32,6 @@ public class WikiTests {
         wikiMed7 = new WikiMediator(20, 10);
     }
 
-
     @Test
     public void windowedPeakLoadTest1() throws InterruptedException {
         int expected = 4;
@@ -50,12 +49,8 @@ public class WikiTests {
         wikiMed1.search("poke", 2);
         wikiMed1.getPage("Cardi B");
 
-
         result = wikiMed1.windowedPeakLoad(30);
-
         Assertions.assertEquals(expected, result);
-
-
     }
 
     @Test
@@ -75,12 +70,8 @@ public class WikiTests {
         wikiMed2.search("poke", 2);
         wikiMed2.getPage("Cardi B");
 
-
         result = wikiMed2.windowedPeakLoad(30);
-
         Assertions.assertEquals(expected, result);
-
-
     }
 
     @Test
@@ -108,12 +99,8 @@ public class WikiTests {
         wikiMed3.search("poke", 2);
         wikiMed3.getPage("Cardi B");
 
-
         result = wikiMed3.windowedPeakLoad();
-
         Assertions.assertEquals(expected, result);
-
-
     }
 
     @Test

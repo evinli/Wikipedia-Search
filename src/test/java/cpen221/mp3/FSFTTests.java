@@ -1,46 +1,89 @@
 package cpen221.mp3;
 
+import cpen221.mp3.exceptions.InvalidObjectException;
+import cpen221.mp3.fsftbuffer.Buffer;
+import cpen221.mp3.fsftbuffer.FSFTBuffer;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-
-import java.util.HashMap;
 
 public class FSFTTests {
 
+    public static FSFTBuffer<Buffer> buffer1, buffer2, buffer3;
+    public static Buffer b1, b2, b3;
+
+    @BeforeAll
+    public static void setUpTests() {
+        buffer1 = new FSFTBuffer(2, 20);
+        buffer2 = new FSFTBuffer(20, 3);
+        buffer3 = new FSFTBuffer(15, 2);
+        b1 = new Buffer("a");
+        b2 = new Buffer("b");
+        b3 = new Buffer("c");
+    }
+
     @Test
-    public void testRun() {
-        HashMap<Integer, Integer> test1 = new HashMap<>();
-        HashMap<Integer, Integer> test2 = new HashMap<>();
-        int capacity = 1;
+    public void testPutWithException_EvictedObject() throws InterruptedException {
+        Assertions.assertTrue(buffer1.put(b1));
+        Assertions.assertTrue(buffer1.put(b2));
+        Assertions.assertTrue(buffer1.put(b3));
+        Assertions.assertFalse(buffer1.put(null));
 
-        test1.put(0, 1);
-        test2.put(0, 1);
-
-        test1.put(1, 2);
-        test2.put(1, 2);
-
-        test1.put(2, 3);
-        test2.put(2, 3);
-
-        test1.put(3, 4);
-        test2.put(3, 4);
-
-        test1.put(5, 6);
-        test2.put(5, 6);
-
-        test1.entrySet().removeIf(e -> e.getValue() == 2);
-        test2.entrySet().removeIf(e -> !test1.containsKey(e.getKey()));
-
-        System.out.println(test1);
-        System.out.println(test2);
-
-        if (test1.size() >= capacity) {
-            int id = test1.entrySet().stream().min((e1, e2) -> e1.getValue() > e2.getValue() ? 1: -1).get().getKey();
-            test1.remove(id);
-            test2.remove(id);
+        try {
+            Assertions.assertEquals(b1, buffer1.get("a"));
+        } catch (InvalidObjectException e) {
+            e.printStackTrace();
         }
+    }
 
-        Assertions.assertEquals(true,true);
+    @Test
+    public void testMultiplePuts_AccessTimeUnchanged_StaleObject() throws InterruptedException {
+        buffer3.put(b1);
+        buffer3.put(b2);
+        buffer3.put(b3);
+        Thread.sleep(2 * 1000);
+        buffer3.put(b1); // shouldn't change access time of b1
+        Thread.sleep(1 * 1000);
+
+        try {
+            Assertions.assertEquals(b1, buffer3.get("a"));
+        } catch (InvalidObjectException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testGetWithException_StaleObject() throws InterruptedException {
+        buffer2.put(b1);
+        buffer2.put(b2);
+        buffer2.put(b3);
+        Thread.sleep(3 * 1000);
+        buffer2.touch("a");
+
+        Thread.sleep(4 * 1000);
+
+        try {
+            Assertions.assertEquals(b1, buffer2.get("a"));
+        } catch (InvalidObjectException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testGetSuccess_NonStaleObject() throws InterruptedException {
+        buffer2.put(b1);
+        buffer2.put(b2);
+        buffer2.put(b3);
+        Thread.sleep(3 * 1000);
+        buffer2.touch("a");
+
+        Thread.sleep(3 * 1000);
+
+        try {
+            Assertions.assertEquals(b1, buffer2.get("a"));
+        } catch (InvalidObjectException e) {
+            e.printStackTrace();
+        }
     }
 
     @Test
@@ -48,15 +91,6 @@ public class FSFTTests {
 
     }
 
-    @Test
-    public void testPut() {
-
-    }
-
-    @Test
-    public void testGet() {
-
-    }
 
     @Test
     public void testTouch() {

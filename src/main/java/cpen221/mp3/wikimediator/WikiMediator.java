@@ -12,7 +12,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 
-
 public class WikiMediator {
     Wiki wiki = new Wiki.Builder().withDomain("en.wikipedia.org").build();
     FSFTBuffer cache;

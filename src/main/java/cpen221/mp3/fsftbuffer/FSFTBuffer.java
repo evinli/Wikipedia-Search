@@ -95,9 +95,9 @@ public class FSFTBuffer<T extends Bufferable> {
         synchronized (this) {
             // if buffer is full, remove least-recently-used (LRU) object @bottom of buffer stack
             if (buffer.size() == maxCapacity) {
+                bufferItems.remove(buffer.get(0).id());
+                accessTimes.remove(buffer.get(0).id());
                 buffer.remove(0);
-                bufferItems.remove(t.id());
-                accessTimes.remove(t.id());
             }
 
             // if object is in buffer and hasn't timed out, change nothing
@@ -107,7 +107,6 @@ public class FSFTBuffer<T extends Bufferable> {
                 accessTimes.put(t.id(), currentTime);
                 buffer.push(t);
             }
-
 
             // return true to indicate successful add
             checkRep();
