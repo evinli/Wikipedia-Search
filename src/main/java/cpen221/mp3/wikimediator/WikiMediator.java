@@ -30,6 +30,13 @@ public class WikiMediator {
      *      AF(methodCalls.size()) = the total number of method calls
      *      AF(StartTime) = reference time = 0
      */
+
+    /**
+     * Rep invariant:
+     *      every object in the Wikimediator cache is a Wikipage
+     *      every timestamp in pageSearches also exists in methodCalls
+     */
+
     class WikiMediatorData {
         private HashMap<String, ArrayList> pageSearch;
         private ArrayList methodCall;
@@ -39,11 +46,6 @@ public class WikiMediator {
             this.methodCall = methodCall;
         }
     }
-    /**
-     * Rep invariant:
-     *      every object in the Wikimediator cache is a Wikipage
-     *      every timestamp in pageSearches also exists in methodCalls
-     */
 
     /**
      * Creates a WikiMediator that acts as a cache for wikipedia pages
@@ -51,7 +53,6 @@ public class WikiMediator {
      * @param capacity the maximum number of items the WikiMediator can store
      * @param stalenessInterval the time it takes for a page to become stale in the WikiMediator
      */
-
     public WikiMediator(int capacity, int stalenessInterval){
         try {
             Gson gson = new Gson();
