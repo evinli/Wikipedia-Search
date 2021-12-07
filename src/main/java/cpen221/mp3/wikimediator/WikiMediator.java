@@ -90,7 +90,10 @@ public class WikiMediator {
      * Creates a mediator service that accesses Wikipedia to obtain pages
      * and other relevant information. In addition to collecting statistical
      * information about requests, the mediator service should also cache
-     * Wikipedia pages to minimize network accesses.
+     * Wikipedia pages to minimize network accesses. Note that timestamps for
+     * requests are cached based on when calls to the API Jwiki are recorded
+     * rather than when they're initially called (accounts for subtle time
+     * delays).
      *
      * @param capacity the maximum number of Wiki the WikiMediator can store
      * @param stalenessInterval the time it takes for a page to become stale in
