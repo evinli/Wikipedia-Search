@@ -110,8 +110,8 @@ public class WikiMediator {
             pageSearches = new HashMap<>();
             methodsCalls = new ArrayList<>();
         }
-        cache = new FSFTBuffer(capacity, stalenessInterval);
-        startTime = (int) System.currentTimeMillis() / CONVERT_MS_TO_S;
+        cache = new FSFTBuffer<>(capacity, stalenessInterval);
+        startTime = (int)(System.currentTimeMillis() / CONVERT_MS_TO_S);
     }
 
 
@@ -125,19 +125,20 @@ public class WikiMediator {
      */
     public List<String> search(String query, int limit) {
         List<String> matches = wiki.search(query, limit);
+        int absoluteTime = (int)(System.currentTimeMillis() /
+                CONVERT_MS_TO_S);
 
         synchronized (this) {
-            int absoluteTime = (int) System.currentTimeMillis() /
-                    CONVERT_MS_TO_S;
             if (pageSearches.containsKey(query)) {
                 pageSearches.get(query).add(absoluteTime - startTime);
                 methodsCalls.add(absoluteTime - startTime);
             } else {
-                pageSearches.put(query, new ArrayList());
+                pageSearches.put(query, new ArrayList<>());
                 pageSearches.get(query).add(absoluteTime - startTime);
                 methodsCalls.add(absoluteTime - startTime);
             }
         }
+
         return matches;
     }
 
@@ -160,12 +161,12 @@ public class WikiMediator {
             cache.put(page);
         }
 
-        int absoluteTime = (int) System.currentTimeMillis() / CONVERT_MS_TO_S;
+        int absoluteTime = (int)(System.currentTimeMillis() / CONVERT_MS_TO_S);
         if (pageSearches.containsKey(pageTitle)) {
             pageSearches.get(pageTitle).add(absoluteTime - startTime);
             methodsCalls.add(absoluteTime - startTime);
         } else {
-            pageSearches.put(pageTitle, new ArrayList());
+            pageSearches.put(pageTitle, new ArrayList<>());
             pageSearches.get(pageTitle).add(absoluteTime - startTime);
             methodsCalls.add(absoluteTime - startTime);
         }
@@ -185,16 +186,16 @@ public class WikiMediator {
     public List<String> zeitgeist(int limit) {
         List<String> mostCommon;
         HashMap<String, Integer> reduced = new HashMap<>();
-        int absoluteTime = (int) System.currentTimeMillis() / CONVERT_MS_TO_S;
+        int absoluteTime = (int)(System.currentTimeMillis() /
+                CONVERT_MS_TO_S);
 
         synchronized (this) {
+            methodsCalls.add(absoluteTime - startTime);
             for (String key : pageSearches.keySet()) {
                 int size = pageSearches.get(key).size();
                 reduced.put(key, size);
             }
-            methodsCalls.add(absoluteTime - startTime);
         }
-
         mostCommon = reduced.entrySet().stream().sorted(Map.Entry.<String,
                 Integer>comparingByValue().reversed()).limit(limit).map(e ->
                 e.getKey()).collect(Collectors.toList());
@@ -215,10 +216,11 @@ public class WikiMediator {
     public List<String> trending(int timeLimitInSeconds, int maxItems) {
         List<String> mostFrequent;
         HashMap<String, Integer> reduced = new HashMap<>();
-        int currentTime = (int)(System.currentTimeMillis() / CONVERT_MS_TO_S)
-                - startTime;
+        int currentTime = (int)(System.currentTimeMillis() /
+                CONVERT_MS_TO_S) - startTime;
 
         synchronized (this) {
+            methodsCalls.add(currentTime);
             for (String key : pageSearches.keySet()) {
                 int count = 0;
                 int thresholdTime = currentTime - timeLimitInSeconds;
@@ -230,11 +232,11 @@ public class WikiMediator {
                     }
                     count++;
                 }
-                if (count > 0) {
+
+                if(count > 0) {
                     reduced.put(key, count);
                 }
             }
-            methodsCalls.add(currentTime);
         }
         mostFrequent = reduced.entrySet().stream().sorted(Map.Entry.<String,
                 Integer>comparingByValue().reversed()).limit(maxItems).map(e ->
@@ -257,7 +259,8 @@ public class WikiMediator {
     public int windowedPeakLoad(int timeWindowInSeconds) {
         int maxRequest = 0;
         int tempMax = 0;
-        int absoluteTime = (int) System.currentTimeMillis() / CONVERT_MS_TO_S;
+        int absoluteTime = (int)(System.currentTimeMillis() /
+                CONVERT_MS_TO_S);
 
         synchronized (this) {
             methodsCalls.add(absoluteTime - startTime);

@@ -34,7 +34,7 @@ public class WikiTests {
 
     @Test
     public void windowedPeakLoadTest1() throws InterruptedException {
-        int expected = 4;
+        int expected = 5;
         int result;
         int timeWindow = 30;
 
