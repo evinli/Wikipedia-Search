@@ -47,11 +47,18 @@ public class WikiMediator {
      *      every timestamp in pageSearches also exists in methodCalls
      */
 
+    /**
+     * Gson mapping class used to store data between WikiMediatorServer sessions
+     */
     class WikiMediatorData {
         private HashMap<String, ArrayList<Integer>> pageSearch;
         private ArrayList methodCall;
         private int startTime;
 
+        /**
+         * Initializer
+         * Parameters are a subset of the WikiMediator class variables
+         */
         public WikiMediatorData(HashMap<String, ArrayList<Integer>> pageSearch, ArrayList methodCall, int startTime) {
             this.pageSearch = pageSearch;
             this.methodCall = methodCall;
@@ -275,8 +282,11 @@ public class WikiMediator {
         return windowedPeakLoad(30);
     }
 
-    //TODO: liam - do we need specs for these?
-    public void stop() {
+    /**
+     * Saves data needed by zeitgeist and trending to a local file
+     * DOES NOT SHUT DOWN SERVER
+     */
+    public void close() {
         Gson gson = new Gson();
         WikiMediatorData wd = new WikiMediatorData(this.pageSearches,this.methodsCalls,this.startTime);
         String json = gson.toJson(wd);

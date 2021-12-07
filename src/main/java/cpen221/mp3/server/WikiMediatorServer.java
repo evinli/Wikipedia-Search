@@ -14,7 +14,7 @@ public class WikiMediatorServer {
     /**
      * Default port number where the server listens for connections.
      */
-    public static final int WIKIMEDIATOR_PORT = 4949;
+    public static final int WIKIMEDIATOR_PORT = 9000;
     public static final int MAX_CLIENTS = 32;
 
     private int num_clients = 0;
@@ -99,17 +99,13 @@ public class WikiMediatorServer {
                 WikiMediatorRequest request = gson.fromJson(line, WikiMediatorRequest.class);
                 String response = request.handle(wikiMediator);
                 out.println(response);
-                if (response.contains("bye")) {
+                //checks to see if response is a stop request and hard-exits server
+                if (response.contains("\"response\":\"bye\"")) {
                     System.exit(0);
                 }
-                // important! our PrintWriter is auto-flushing, but if it were
-                // not:
-                // out.flush();*/
             }
         } catch (IOException e) {
             throw new RuntimeException();
-        } catch (InaccessibleObjectException e) {
-            throw new RuntimeException("Could not parse JSON");
         } finally {
             out.close();
             in.close();
