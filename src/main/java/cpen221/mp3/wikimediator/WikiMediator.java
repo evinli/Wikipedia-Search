@@ -4,10 +4,12 @@ import com.google.gson.Gson;
 import cpen221.mp3.exceptions.InvalidObjectException;
 import cpen221.mp3.fsftbuffer.FSFTBuffer;
 import org.fastily.jwiki.core.Wiki;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 /**
@@ -285,6 +287,21 @@ public class WikiMediator {
     public int windowedPeakLoad() {
         return windowedPeakLoad(30);
     }
+
+
+    /**
+     * Returns the shortest path between two Wikipedia pages. If there are two
+     * or more shortest paths, then the one with the lowest lexicographical
+     * value is returned.
+     *
+     * @return a list of page titles (including the starting and ending pages)
+     * on the shortest computed path; if no path exists, return an empty list
+     */
+    public List<String> shortestPath(String pageTitle1, String pageTitle2,
+                                     int timeout) throws TimeoutException {
+        return null;
+    }
+
 
     /**
      * Saves data needed by zeitgeist() and trending() requests to a local file.
