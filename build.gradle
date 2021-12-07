@@ -5,7 +5,7 @@ plugins {
 group 'CPEN 221'
 version '0.1-SKELETON'
 
-sourceCompatibility = 16
+sourceCompatibility = 1.11
 
 repositories {
     mavenCentral()
@@ -22,4 +22,3 @@ test {
     useJUnitPlatform()
 }
 
-targetCompatibility = JavaVersion.VERSION_16

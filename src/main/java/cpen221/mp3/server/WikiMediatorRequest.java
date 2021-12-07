@@ -33,8 +33,8 @@ public class WikiMediatorRequest {
             this.id = id;
             this.status = status;
             this.response = response;
-
         }
+
         public String respond() {
             Gson gson = new Gson();
             return gson.toJson(this);

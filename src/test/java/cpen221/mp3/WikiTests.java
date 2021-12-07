@@ -2,15 +2,11 @@ package cpen221.mp3;
 
 import cpen221.mp3.wikimediator.WikiMediator;
 import cpen221.mp3.wikimediator.WikiPage;
-import org.fastily.jwiki.core.Wiki;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 public class WikiTests {
@@ -23,6 +19,9 @@ public class WikiTests {
     public static WikiMediator wikiMed5;
     public static WikiMediator wikiMed6;
     public static WikiMediator wikiMed7;
+    public static WikiMediator wikiMed8;
+    public static WikiMediator wikiMed9;
+    public static WikiMediator wikiMed10;
 
     @BeforeAll
     public static void setUpTests() {
@@ -34,12 +33,20 @@ public class WikiTests {
         wikiMed5 = new WikiMediator(20, 10);
         wikiMed6 = new WikiMediator(20, 10);
         wikiMed7 = new WikiMediator(20, 10);
+        wikiMed8 = new WikiMediator(20, 10);
+        wikiMed9 = new WikiMediator(20, 10);
+        wikiMed10 = new WikiMediator(20, 10);
     }
 
+    @Test
+    public void testGetPageSearch(){
+        System.out.println(wikiMed9.getPage("Doja Cat"));
+        System.out.println(wikiMed9.search("Doja Cat", 3));
+    }
 
     @Test
     public void windowedPeakLoadTest1() throws InterruptedException {
-        int expected = 4;
+        int expected = 5;
         int result;
         int timeWindow = 30;
 
@@ -54,12 +61,8 @@ public class WikiTests {
         wikiMed1.search("poke", 2);
         wikiMed1.getPage("Cardi B");
 
-
         result = wikiMed1.windowedPeakLoad(30);
-
         Assertions.assertEquals(expected, result);
-
-
     }
 
     @Test
@@ -79,12 +82,8 @@ public class WikiTests {
         wikiMed2.search("poke", 2);
         wikiMed2.getPage("Cardi B");
 
-
         result = wikiMed2.windowedPeakLoad(30);
-
         Assertions.assertEquals(expected, result);
-
-
     }
 
     @Test
@@ -112,12 +111,8 @@ public class WikiTests {
         wikiMed3.search("poke", 2);
         wikiMed3.getPage("Cardi B");
 
-
         result = wikiMed3.windowedPeakLoad();
-
         Assertions.assertEquals(expected, result);
-
-
     }
 
     @Test
@@ -133,21 +128,17 @@ public class WikiTests {
         wikiMed5.search("poke", 3);
         wikiMed5.search("poke", 3);
 
-
         wikiMed5.search("spaghetti", 1);
         wikiMed5.getPage("spaghetti");
         wikiMed5.getPage("spaghetti");
 
-
         wikiMed5.getPage("Cardi B");
         wikiMed5.getPage("Cardi B");
-
 
         wikiMed5.getPage("drake");
         wikiMed5.search("halsey", 10);
 
         results = wikiMed5.zeitgeist(2);
-
         Assertions.assertLinesMatch(expected, results);
     }
 
@@ -155,7 +146,6 @@ public class WikiTests {
 
     @Test
     public void testTrending1() {
-        int limit = 2;
         List<String> results = new ArrayList<>();
         List<String> expected = new ArrayList<>();
         expected.add("poke");
@@ -166,7 +156,6 @@ public class WikiTests {
         wikiMed6.search("poke", 3);
         wikiMed6.search("poke", 3);
         wikiMed6.search("poke", 3);
-
 
         wikiMed6.search("spaghetti", 1);
         wikiMed6.getPage("spaghetti");
@@ -179,7 +168,6 @@ public class WikiTests {
         wikiMed6.search("halsey", 10);
 
         results = wikiMed6.trending(30, 3);
-
         Assertions.assertLinesMatch(expected, results);
     }
 
@@ -211,9 +199,37 @@ public class WikiTests {
         wikiMed7.search("halsey", 10);
 
         results = wikiMed7.trending(10, 3);
+        Assertions.assertLinesMatch(expected, results);
+    }
+
+    //test trending for the last 3 seconds where no methods were called, should return empty arraylist
+    @Test
+    public void testTrendingEmpty() throws InterruptedException {
+        int limit = 10;
+        List<String> expected = new ArrayList<>();
+        List<String> results = new ArrayList<>();
+
+        wikiMed8.getPage("pho");
+        wikiMed8.search("curry", 7);
+
+        Thread.sleep(5*1000);
+
+        results = wikiMed8.trending(3, limit);
 
         Assertions.assertLinesMatch(expected, results);
     }
 
+    //assert that calling windowed peak load alone will return 1
+    @Test
+    public void windowedPeakLoadTest5() throws InterruptedException {
+        int expected = 1;
+        int result;
+        int timeWindow = 30;
+
+
+        result = wikiMed10.windowedPeakLoad(timeWindow);
+        Assertions.assertEquals(expected, result);
+
 //  test for peak load with zeigeist
+    }
 }

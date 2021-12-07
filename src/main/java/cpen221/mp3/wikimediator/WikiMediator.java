@@ -11,14 +11,41 @@ import java.io.PrintWriter;
 import java.util.*;
 import java.util.stream.Collectors;
 
-
-
+/**
+ * A immutable data type that represents a mediator service for Wikipedia.
+ */
 public class WikiMediator {
+    //TODO: madi - do we still need a Wiki instance variable here now that we have
+    //      the WikiPage?
     Wiki wiki = new Wiki.Builder().withDomain("en.wikipedia.org").build();
-    FSFTBuffer cache;
-    HashMap<String, ArrayList> pageSearches; //stores timestamps for search and get queries
-    ArrayList methodsCalls; // stores tiemstamps for all method calls
-    Integer StartTime;
+
+    private static final int CONVERT_MS_TO_S = 1000;
+    private FSFTBuffer<WikiPage> cache;
+    private HashMap<String, ArrayList<Integer>> pageSearches;
+    private ArrayList<Integer> methodsCalls;
+    private int startTime;
+
+    /**
+     * Abstraction function:
+     *      AF(cache) = data cache that stores all wikipedia pages for a given
+     *                  staleness interval and cache capacity
+     *      AF(pageSearches.keySet()) = page names of all wikipedia pages
+     *                                  used in search() or getPage() requests
+     *      AF(pageSearches.get(pageName)) = timestamps for search() and
+     *                                       getPage() requests called using
+     *                                       pageName
+     *      AF(methodCalls) = stores timestamps for all method requests
+     *      AF(methodCalls.size()) = the total number of method requests
+     *      AF(startTime) = reference time
+     */
+
+    //TODO: madi - cache RI is already enforced by the line "FSFTBuffer<WikiPage> cache",
+    //      can technically delete the cache RI
+    /**
+     * Rep invariant:
+     *      every object stored in the FSFTBuffer cache is of type Wikipage
+     *      every timestamp in pageSearches also exists in methodCalls
+     */
 
     class WikiMediatorData {
         private HashMap<String, ArrayList> pageSearch;
@@ -32,44 +59,60 @@ public class WikiMediator {
         }
     }
 
-    public WikiMediator(int capacity, int stalenessInterval){
+    /**
+     * Creates a mediator service that accesses Wikipedia to obtain pages
+     * and other relevant information. In addition to collecting statistical
+     * information about requests, the mediator service should also cache
+     * Wikipedia pages to minimize network accesses. Note that timestamps for
+     * requests are cached based on when calls to the API Jwiki are recorded
+     * rather than when they're initially called (accounts for subtle time
+     * delays).
+     *
+     * @param capacity the maximum number of Wiki the WikiMediator can store
+     * @param stalenessInterval the time it takes for a page to become stale in
+     *                          the WikiMediator
+     */
+    public WikiMediator(int capacity, int stalenessInterval) {
         try {
             Gson gson = new Gson();
-            String oldData = new Scanner(new File("local/WikiMediatorSave.txt")).useDelimiter("\\Z").next();
-            WikiMediatorData wd = gson.fromJson(oldData, WikiMediatorData.class);
+            String oldData = new Scanner(new File
+                    ("local/WikiMediatorSave.txt")).useDelimiter("\\Z")
+                    .next();
+            WikiMediatorData wd = gson.fromJson(oldData,
+                    WikiMediatorData.class);
             pageSearches = wd.pageSearch;
             methodsCalls = wd.methodCall;
-            StartTime = wd.startTime;
+            startTime = wd.startTime;
         } catch (Exception e) {
-            pageSearches = new HashMap<String, ArrayList>();
-            methodsCalls = new ArrayList<Integer>();
-            StartTime = (int)(System.currentTimeMillis() / 1000L);
+            pageSearches = new HashMap<>();
+            methodsCalls = new ArrayList<>();
+            startTime = (int)(System.currentTimeMillis() / CONVERT_MS_TO_S);
         }
-        cache = new FSFTBuffer(capacity, stalenessInterval);
+        cache = new FSFTBuffer<>(capacity, stalenessInterval);
     }
 
 
     /**
      * Given a query, return up to limit page titles that match the query string
      * (per Wikipedia's search service).
-     * @param query
-     * @param limit
-     * @return
+     *
+     * @param query the query string to be searched up
+     * @param limit the max number of page titles to return
+     * @return list of up to {@code limit} page titles that match the query
      */
-    public List<String> search(String query, int limit){
-        List<String> matches = new ArrayList<>();
+    public List<String> search(String query, int limit) {
+        List<String> matches = wiki.search(query, limit);
+        int absoluteTime = (int)(System.currentTimeMillis() /
+                CONVERT_MS_TO_S);
 
-            matches = wiki.search(query, limit);
-
-            //adds the timestamp of the request to the hashmap pageSearches
         synchronized (this) {
             if (pageSearches.containsKey(query)) {
-                pageSearches.get(query).add((int) (System.currentTimeMillis() / 1000L - StartTime));
-                methodsCalls.add((int) (System.currentTimeMillis() / 1000L - StartTime));
+                pageSearches.get(query).add(absoluteTime - startTime);
+                methodsCalls.add(absoluteTime - startTime);
             } else {
-                pageSearches.put(query, new ArrayList());
-                pageSearches.get(query).add((int) (System.currentTimeMillis() / 1000L - StartTime));
-                methodsCalls.add((int) (System.currentTimeMillis() / 1000L - StartTime));
+                pageSearches.put(query, new ArrayList<>());
+                pageSearches.get(query).add(absoluteTime - startTime);
+                methodsCalls.add(absoluteTime - startTime);
             }
         }
 
@@ -77,129 +120,134 @@ public class WikiMediator {
     }
 
     /**
-     * Given a pageTitle, return the text associated with the Wikipedia page that matches pageTitle.
-     * @param pageTitle
-     * @return
+     * Given a page title, return the text associated with the Wikipedia page
+     * that matches the page title.
+     *
+     * @param pageTitle the page title to retrieve text from
+     * @return the text associated with the Wikipedia page that matches
+     * {@code pageTitle}
      */
-    public synchronized String getPage(String pageTitle){
-        String text = new String();
+    public synchronized String getPage(String pageTitle) {
+        String text;
         WikiPage page = new WikiPage(pageTitle);
 
-        try{
-            text = cache.get(pageTitle).toString();
-
+        try {
+            text = cache.get(pageTitle).text();
         } catch (InvalidObjectException e) {
-            e.printStackTrace();
             text = wiki.getPageText(pageTitle);
             cache.put(page);
         }
 
-        if(pageSearches.containsKey(pageTitle)){
-            pageSearches.get(pageTitle).add((int)(System.currentTimeMillis() / 1000L - StartTime));
-            methodsCalls.add((int)(System.currentTimeMillis() / 1000L - StartTime));
-        }
-        else{
-            pageSearches.put(pageTitle, new ArrayList());
-            pageSearches.get(pageTitle).add((int)(System.currentTimeMillis() / 1000L - StartTime));
-            methodsCalls.add((int)(System.currentTimeMillis() / 1000L - StartTime));
+        int absoluteTime = (int)(System.currentTimeMillis() / CONVERT_MS_TO_S);
+        if (pageSearches.containsKey(pageTitle)) {
+            pageSearches.get(pageTitle).add(absoluteTime - startTime);
+            methodsCalls.add(absoluteTime - startTime);
+        } else {
+            pageSearches.put(pageTitle, new ArrayList<>());
+            pageSearches.get(pageTitle).add(absoluteTime - startTime);
+            methodsCalls.add(absoluteTime - startTime);
         }
 
         return text;
     }
 
     /**
-     * Most common strings used in search and getpage requests,
-     * with items being sorted in non-increasing count order.
-     * Return only limit items
+     * Return the most common query strings used in search() and getPage()
+     * requests, with items sorted in decreasing count order up to a maximum of
+     * {@code limit} items.
      *
-     * @param limit
-     * @return
+     * @param limit the maximum number of items that should be returned
+     * @return list of most common query strings used in search() and getPage()
+     * requests in decreasing count order
      */
-    public List<String> zeitgeist(int limit){
-        List<String> mostCommon= new ArrayList<>();
-        HashMap<String, Integer> reduced = new HashMap<String, Integer>();
+    public List<String> zeitgeist(int limit) {
+        List<String> mostCommon;
+        HashMap<String, Integer> reduced = new HashMap<>();
+        int absoluteTime = (int)(System.currentTimeMillis() /
+                CONVERT_MS_TO_S);
 
         synchronized (this) {
+            methodsCalls.add(absoluteTime - startTime);
             for (String key : pageSearches.keySet()) {
                 int size = pageSearches.get(key).size();
-
                 reduced.put(key, size);
             }
-            methodsCalls.add((int) (System.currentTimeMillis() / 1000L - StartTime));
         }
-
-        mostCommon = reduced.entrySet().stream().sorted(Map.Entry.<String, Integer>comparingByValue().reversed()).limit(limit).map(e -> e.getKey())
-                .collect(Collectors.toList());
-
-
+        mostCommon = reduced.entrySet().stream().sorted(Map.Entry.<String,
+                Integer>comparingByValue().reversed()).limit(limit).map(e ->
+                e.getKey()).collect(Collectors.toList());
 
         return mostCommon;
     }
 
-
     /**
-     * returns list of most frequent requests made in last timelimitinseconds seconds,
-     * items are sorted in non-increasing count order. report at most maxItems of the most
-     * frequent requests
+     * Returns the most frequent requests made in the last
+     * {@code timeLimitInSeconds} seconds, reporting up to a maximum of
+     * {@code maxItems} of the most frequent requests.
      *
-     * @param timeLimitInSeconds
-     * @param maxItems
-     * @return
+     * @param timeLimitInSeconds the time window to return requests from
+     * @param maxItems the maximum number of items that should be returned
+     * @return returns list of most frequent requests made in last
+     * {@code timeLimitInSeconds} seconds
      */
-    public List<String> trending(int timeLimitInSeconds, int maxItems){
-        List<String> mostFrequent = new ArrayList<>();
-        HashMap<String, Integer> reduced = new HashMap<String, Integer>();
-        //current time = the time right now with respect to the time the object was created
-        int currentTime = (int)(System.currentTimeMillis() / 1000L - StartTime);
+    public List<String> trending(int timeLimitInSeconds, int maxItems) {
+        List<String> mostFrequent;
+        HashMap<String, Integer> reduced = new HashMap<>();
+        int currentTime = (int)(System.currentTimeMillis() /
+                CONVERT_MS_TO_S) - startTime;
 
         synchronized (this) {
+            methodsCalls.add(currentTime);
             for (String key : pageSearches.keySet()) {
                 int count = 0;
-                //threshold time = count trending items between threshold time to current time
-                int ThresholdTime = currentTime - timeLimitInSeconds;
-
+                int thresholdTime = currentTime - timeLimitInSeconds;
 
                 for (int i = pageSearches.get(key).size() - 1; i >= 0; i--) {
-                    int nextTime = (int) pageSearches.get(key).get(i);
-                    if (nextTime < ThresholdTime) {
+                    int nextTime = pageSearches.get(key).get(i);
+                    if (nextTime < thresholdTime) {
                         break;
                     }
                     count++;
                 }
-
-                reduced.put(key, count);
+                if(count > 0) {
+                    reduced.put(key, count);
+                }
             }
-
-            methodsCalls.add((int) (System.currentTimeMillis() / 1000L - StartTime));
         }
-
-        mostFrequent = reduced.entrySet().stream().sorted(Map.Entry.<String, Integer>comparingByValue().reversed()).limit(maxItems).map(e -> e.getKey())
-                .collect(Collectors.toList());
-
+        mostFrequent = reduced.entrySet().stream().sorted(Map.Entry.<String,
+                Integer>comparingByValue().reversed()).limit(maxItems).map(e ->
+                e.getKey()).collect(Collectors.toList());
 
         return mostFrequent;
     }
 
     /**
-     * returns maximum number of requests seen at anytime window of a given length,
-     * request count includes all request made using WikiMediator. Counts all 5 methods listed as basic page
-     * requests
-     * @param timeWindowInSeconds
-     * @return
+     * Returns the maximum number of requests seen in any time window of a given
+     * length. Note that the request count includes all requests made using the
+     * WikiMediator, and therefore counts all four method calls, including
+     * itself.
+     *
+     * @param timeWindowInSeconds the specified time window to find maximum
+     *                            number of requests from
+     * @return the maximum number of requests seen at any time window of a given
+     * length
      */
-    public int windowedPeakLoad(int timeWindowInSeconds){
+    public int windowedPeakLoad(int timeWindowInSeconds) {
         int maxRequest = 0;
         int tempMax = 0;
+        int absoluteTime = (int)(System.currentTimeMillis() /
+                CONVERT_MS_TO_S);
 
         synchronized (this) {
+            methodsCalls.add(absoluteTime - startTime);
             for (int i = 0; i < methodsCalls.size(); i++) {
                 for (int j = i; j < methodsCalls.size(); j++) {
-                    int valueJ = (int) methodsCalls.get(j);
-                    int valueI = (int) methodsCalls.get(i);
+                    int valueJ = methodsCalls.get(j);
+                    int valueI = methodsCalls.get(i);
 
                     if ((valueJ - valueI) > timeWindowInSeconds) {
-                        if (((j) - i) > tempMax) {
-                            tempMax = ((j) - i);
+                        if ((j - i) > tempMax) {
+                            tempMax = (j - i);
                         }
                         break;
                     } else if (j == methodsCalls.size() - 1) {
@@ -211,23 +259,29 @@ public class WikiMediator {
                 }
             }
         }
+
         maxRequest = tempMax;
         return maxRequest;
     }
- //TODO
-    //does peak load count itself
 
-    public int windowedPeakLoad(){
-
+    /**
+     * Returns the maximum number of requests seen in any time window of 30
+     * seconds.
+     *
+     * @return the maximum number of requests seen at any time window of 30
+     * seconds
+     */
+    public int windowedPeakLoad() {
         return windowedPeakLoad(30);
     }
 
+    //TODO: liam - do we need specs for these?
     public void stop() {
         Gson gson = new Gson();
         WikiMediatorData wd = new WikiMediatorData(this.pageSearches,this.methodsCalls,this.StartTime);
         String json = gson.toJson(wd);
-        try (PrintWriter out = new PrintWriter("local/WikiMediatorSave.txt")) {
-            out.println(json);
+        try (PrintWriter out = new PrintWriter
+                ("local/WikiMediatorSave.txt")) { out.println(json);
         } catch (IOException e) {
             throw new RuntimeException("Error writing to file");
         }
