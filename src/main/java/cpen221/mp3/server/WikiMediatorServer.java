@@ -53,27 +53,29 @@ public class WikiMediatorServer {
         public void serve() throws IOException {
             while (true) {
                 // block until a client connects
-                final Socket socket = serverSocket.accept();
-                num_clients++;
-                // create a new thread to handle that client
-                Thread handler = new Thread(new Runnable() {
-                    public void run() {
-                        try {
+                if (num_clients < MAX_CLIENTS) {
+                    final Socket socket = serverSocket.accept();
+                    num_clients++;
+                    // create a new thread to handle that client
+                    Thread handler = new Thread(new Runnable() {
+                        public void run() {
                             try {
-                                handle(socket);
-                            } finally {
-                                socket.close();
-                                if (num_clients > 0) num_clients--;
+                                try {
+                                    handle(socket);
+                                } finally {
+                                    socket.close();
+                                    if (num_clients > 0) num_clients--;
+                                }
+                            } catch (IOException ioe) {
+                                // this exception wouldn't terminate serve(),
+                                // since we're now on a different thread, but
+                                // we still need to handle it
+                                ioe.printStackTrace();
                             }
-                        } catch (IOException ioe) {
-                            // this exception wouldn't terminate serve(),
-                            // since we're now on a different thread, but
-                            // we still need to handle it
-                            ioe.printStackTrace();
                         }
-                    }
-                });
-                handler.start(); //start the thread
+                    });
+                    handler.start(); //start the thread
+                }
             }
         }
 
@@ -101,7 +103,7 @@ public class WikiMediatorServer {
                     WikiMediatorRequest request = gson.fromJson(line, WikiMediatorRequest.class);
                     String response = request.handle(wikiMediator);
                     out.println(response);
-                    if (response.contains("bye")) {
+                    if (response.contains("\"response\":\"bye\"")) {
                         System.exit(0);
                     }
                     // important! our PrintWriter is auto-flushing, but if it were

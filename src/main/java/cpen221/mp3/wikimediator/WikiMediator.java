@@ -23,10 +23,12 @@ public class WikiMediator {
     class WikiMediatorData {
         private HashMap<String, ArrayList> pageSearch;
         private ArrayList methodCall;
+        private int startTime;
 
-        public WikiMediatorData(HashMap<String, ArrayList> pageSearch, ArrayList methodCall) {
+        public WikiMediatorData(HashMap<String, ArrayList> pageSearch, ArrayList methodCall, int startTime) {
             this.pageSearch = pageSearch;
             this.methodCall = methodCall;
+            this.startTime = startTime;
         }
     }
 
@@ -37,12 +39,13 @@ public class WikiMediator {
             WikiMediatorData wd = gson.fromJson(oldData, WikiMediatorData.class);
             pageSearches = wd.pageSearch;
             methodsCalls = wd.methodCall;
+            StartTime = wd.startTime;
         } catch (Exception e) {
             pageSearches = new HashMap<String, ArrayList>();
             methodsCalls = new ArrayList<Integer>();
+            StartTime = (int)(System.currentTimeMillis() / 1000L);
         }
         cache = new FSFTBuffer(capacity, stalenessInterval);
-        StartTime = (int)(System.currentTimeMillis() / 1000L);
     }
 
 
@@ -221,7 +224,7 @@ public class WikiMediator {
 
     public void stop() {
         Gson gson = new Gson();
-        WikiMediatorData wd = new WikiMediatorData(this.pageSearches,this.methodsCalls);
+        WikiMediatorData wd = new WikiMediatorData(this.pageSearches,this.methodsCalls,this.StartTime);
         String json = gson.toJson(wd);
         try (PrintWriter out = new PrintWriter("local/WikiMediatorSave.txt")) {
             out.println(json);

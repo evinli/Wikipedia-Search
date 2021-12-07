@@ -4,6 +4,10 @@ import com.google.gson.Gson;
 import cpen221.mp3.wikimediator.WikiMediator;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class WikiMediatorRequest {
     private String id; //all
@@ -55,64 +59,68 @@ public class WikiMediatorRequest {
     }
 
     public String handle(WikiMediator wikiMediator) {
+        boolean timeOut = false;
+        boolean isList = true;
         String request_id = id;
         String json_response = "";
         String status;
         String sResponse = null;
         List<String> lResponse = null;
         Gson gson = new Gson();
+        Future<List<String>> lResponseT = null;
+        Future<String> sResponseT = null;
+        //wrap this in timeout
         if (type.equals("search")) {
-           try {
-               lResponse = wikiMediator.search(query, limit);
-               status = "success";
-           } catch (Exception e) {
-               status = "failed";
-           }
-           ListResponse r = new ListResponse(request_id, status, lResponse);
-           json_response = r.respond();
+           lResponseT = CompletableFuture.supplyAsync(() -> wikiMediator.search(query, limit));
         }
 
         if (type.equals("getPage")) {
-            try {
-                sResponse = wikiMediator.getPage(pageTitle);
-                status = "success";
-            } catch (Exception e) {
-                status = "failed";
-            }
-            Response r = new Response(request_id, status, sResponse);
-            json_response = r.respond();
+            sResponseT = CompletableFuture.supplyAsync(() -> wikiMediator.getPage(pageTitle));
         }
 
         if (type.equals("zeitgeist")) {
-            try {
-                lResponse = wikiMediator.zeitgeist(limit);
-                status = "success";
-            } catch (Exception e) {
-                status = "failed";
-            }
-            ListResponse r = new ListResponse(request_id, status, lResponse);
-            json_response = r.respond();
+            lResponseT = CompletableFuture.supplyAsync(() -> wikiMediator.zeitgeist(limit));
         }
 
         if (type.equals("trending")) {
-            try {
-                lResponse = wikiMediator.trending(timeLimitInSeconds, maxItems);
-                status = "success";
-            } catch (Exception e) {
-                status = "failed";
-            }
-            ListResponse r = new ListResponse(request_id, status, lResponse);
-            json_response = r.respond();
+            lResponseT = CompletableFuture.supplyAsync(() -> wikiMediator.trending(timeLimitInSeconds, maxItems));
         }
 
         if (type.equals("windowedPeakLoad")) {
+            if (timeWindowInSeconds != 0) {
+                sResponseT = CompletableFuture.supplyAsync(() -> String.valueOf(wikiMediator.windowedPeakLoad(timeWindowInSeconds)));
+            } else {
+                sResponseT = CompletableFuture.supplyAsync(() -> String.valueOf(wikiMediator.windowedPeakLoad()));
+            }
+        }
+        if (isList) {
             try {
-                if (timeWindowInSeconds != 0) {
-                    sResponse = String.valueOf(wikiMediator.windowedPeakLoad(timeWindowInSeconds));
-                } else {
-                    sResponse = String.valueOf(wikiMediator.windowedPeakLoad());
-                }
+                lResponse = lResponseT.get(timeout, TimeUnit.SECONDS);
                 status = "success";
+            } catch (TimeoutException t) {
+                timeOut = true;
+                status = "failed";
+                sResponse = "Operation timed out";
+                lResponseT.cancel(true);
+            } catch (Exception e) {
+                status = "failed";
+            }
+            if (timeOut) {
+                Response r = new Response(request_id, status, sResponse);
+                json_response = r.respond();
+            } else {
+                ListResponse r = new ListResponse(request_id, status, lResponse);
+                json_response = r.respond();
+            }
+        } else {
+            try {
+                sResponse = sResponseT.get(timeout, TimeUnit.SECONDS);
+                status = "success";
+            } catch (TimeoutException t) {
+                timeOut = true;
+                status = "failed";
+                sResponse = "Operation timed out";
+                sResponseT.cancel(true);
             } catch (Exception e) {
                 status = "failed";
             }
