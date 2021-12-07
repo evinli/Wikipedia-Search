@@ -126,7 +126,6 @@ public class WikiMediator {
     }
 
     /**
-     * Return only limit items
      *
      * @param limit the number of items the list should contain
      * @return list of most common strings used in search and getpage requests
@@ -182,8 +181,9 @@ public class WikiMediator {
                     }
                     count++;
                 }
-
-                reduced.put(key, count);
+                if(count > 0) {
+                    reduced.put(key, count);
+                }
             }
 
             methodsCalls.add((int) (System.currentTimeMillis() / 1000L - StartTime));
@@ -197,14 +197,17 @@ public class WikiMediator {
     /**
      * request count includes all request made using WikiMediator. Counts all 5 methods listed as basic page
      * requests
+     * calling only windowedPeakLoad will return 1
      * @param timeWindowInSeconds
      * @return the maximum number of requests seen at any time window of a given length
+     *
      */
     public int windowedPeakLoad(int timeWindowInSeconds){
         int maxRequest = 0;
         int tempMax = 0;
 
         synchronized (this) {
+            methodsCalls.add((int) (System.currentTimeMillis() / 1000L - StartTime));
             for (int i = 0; i < methodsCalls.size(); i++) {
                 for (int j = i; j < methodsCalls.size(); j++) {
                     int valueJ = (int) methodsCalls.get(j);
@@ -224,6 +227,7 @@ public class WikiMediator {
                 }
             }
         }
+
         maxRequest = tempMax;
         return maxRequest;
     }

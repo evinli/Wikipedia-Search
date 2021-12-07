@@ -19,6 +19,9 @@ public class WikiTests {
     public static WikiMediator wikiMed5;
     public static WikiMediator wikiMed6;
     public static WikiMediator wikiMed7;
+    public static WikiMediator wikiMed8;
+    public static WikiMediator wikiMed9;
+    public static WikiMediator wikiMed10;
 
     @BeforeAll
     public static void setUpTests() {
@@ -30,11 +33,20 @@ public class WikiTests {
         wikiMed5 = new WikiMediator(20, 10);
         wikiMed6 = new WikiMediator(20, 10);
         wikiMed7 = new WikiMediator(20, 10);
+        wikiMed8 = new WikiMediator(20, 10);
+        wikiMed9 = new WikiMediator(20, 10);
+        wikiMed10 = new WikiMediator(20, 10);
+    }
+
+    @Test
+    public void testGetPageSearch(){
+        System.out.println(wikiMed9.getPage("Doja Cat"));
+        System.out.println(wikiMed9.search("Doja Cat", 3));
     }
 
     @Test
     public void windowedPeakLoadTest1() throws InterruptedException {
-        int expected = 4;
+        int expected = 5;
         int result;
         int timeWindow = 30;
 
@@ -198,5 +210,34 @@ public class WikiTests {
         Assertions.assertLinesMatch(expected, results);
     }
 
+    //test trending for the last 3 seconds where no methods were called, should return empty arraylist
+    @Test
+    public void testTrendingEmpty() throws InterruptedException {
+        int limit = 10;
+        List<String> expected = new ArrayList<>();
+        List<String> results = new ArrayList<>();
+
+        wikiMed8.getPage("pho");
+        wikiMed8.search("curry", 7);
+
+        Thread.sleep(5*1000);
+
+        results = wikiMed8.trending(3, limit);
+
+        Assertions.assertLinesMatch(expected, results);
+    }
+
+    //assert that calling windowed peak load alone will return 1
+    @Test
+    public void windowedPeakLoadTest5() throws InterruptedException {
+        int expected = 1;
+        int result;
+        int timeWindow = 30;
+
+
+        result = wikiMed10.windowedPeakLoad(timeWindow);
+        Assertions.assertEquals(expected, result);
+
 //  test for peak load with zeigeist
+    }
 }
