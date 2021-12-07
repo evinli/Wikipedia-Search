@@ -1,5 +1,6 @@
 package cpen221.mp3;
 
+import cpen221.mp3.exceptions.InvalidObjectException;
 import cpen221.mp3.wikimediator.WikiMediator;
 import cpen221.mp3.wikimediator.WikiPage;
 import org.junit.jupiter.api.Assertions;
@@ -8,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 public class WikiTests {
 
@@ -22,6 +24,7 @@ public class WikiTests {
     public static WikiMediator wikiMed8;
     public static WikiMediator wikiMed9;
     public static WikiMediator wikiMed10;
+    public static WikiMediator wikiMedThreadSafe;
 
     @BeforeAll
     public static void setUpTests() {
@@ -36,6 +39,7 @@ public class WikiTests {
         wikiMed8 = new WikiMediator(20, 10);
         wikiMed9 = new WikiMediator(20, 10);
         wikiMed10 = new WikiMediator(20, 10);
+        wikiMedThreadSafe = new WikiMediator(3, 5);
     }
 
     @Test
@@ -231,5 +235,87 @@ public class WikiTests {
         Assertions.assertEquals(expected, result);
 
 //  test for peak load with zeigeist
+    }
+    @Test
+    public void wikiThreadSafe() throws InterruptedException{
+        CountDownLatch latch = new CountDownLatch(4);
+        int result;
+
+        Thread t1 = new Thread(() -> {
+            wikiMedThreadSafe.getPage("market");
+            latch.countDown();
+        });
+
+        Thread t2 = new Thread(() -> {
+            wikiMedThreadSafe.getPage("math");
+            latch.countDown();
+        });
+
+        Thread t3 = new Thread(() ->{
+            wikiMedThreadSafe.getPage("physics");
+            latch.countDown();
+        });
+
+        Thread t4 = new Thread(() ->{
+            wikiMedThreadSafe.getPage("BBL");
+            latch.countDown();
+        });
+
+        t1.start();
+        t2.start();
+        t3.start();
+        t4.start();
+
+        latch.await();
+        result = wikiMedThreadSafe.windowedPeakLoad();
+
+        Assertions.assertEquals(5, result);
+
+    }
+    @Test
+    public void wikiThreadSafe1() throws InterruptedException{
+        CountDownLatch latch = new CountDownLatch(4);
+        List<String> expectedList = new ArrayList<>();
+        int result;
+
+        expectedList.add("math");
+        expectedList.add("market");
+
+        Thread t1 = new Thread(() -> {
+            wikiMedThreadSafe.getPage("market");
+            latch.countDown();
+        });
+
+        Thread t2 = new Thread(() -> {
+            wikiMedThreadSafe.getPage("math");
+            latch.countDown();
+        });
+
+        Thread t3 = new Thread(() ->{
+            wikiMedThreadSafe.getPage("math");
+            latch.countDown();
+        });
+
+        Thread t4 = new Thread(() ->{
+            wikiMedThreadSafe.getPage("math");
+            latch.countDown();
+        });
+        Thread t5 = new Thread(() ->{
+            wikiMedThreadSafe.search("math", 2);
+            latch.countDown();
+        });
+
+        t1.start();
+        t2.start();
+        t3.start();
+        t4.start();
+        t5.start();
+
+        latch.await();
+        result = wikiMedThreadSafe.windowedPeakLoad();
+
+        Assertions.assertEquals(6, result);
+        Assertions.assertLinesMatch(expectedList, wikiMedThreadSafe.zeitgeist(2));
+
     }
 }
