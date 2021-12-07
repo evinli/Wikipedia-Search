@@ -26,10 +26,10 @@ public class WikiPage implements Bufferable {
      *
      * @param stringID name of the wikipedia page
      */
-    public WikiPage(String stringID){
+    public WikiPage(String stringID) {
         Wiki wiki = new Wiki.Builder().withDomain("en.wikipedia.org").build();
-        this.pageName = stringID;
-        this.pageText = wiki.getPageText(stringID);
+        pageName = stringID;
+        pageText = wiki.getPageText(stringID);
     }
 
     /**
@@ -50,18 +50,18 @@ public class WikiPage implements Bufferable {
         return pageText;
     }
 
-    //TODO: should we equate the pageText or pageName? Is pageText safer since pageName might not be unique?
     @Override
-    public boolean equals(Object o){
+    public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof WikiPage)) return false;
 
         WikiPage page = (WikiPage) o;
-        return this.pageText.equals(page.pageText);
+        return this.pageText.equals(page.pageText)
+                && this.pageName.equals(page.pageName);
     }
 
     @Override
     public int hashCode() {
-        return pageName.hashCode()^ pageText.hashCode();
+        return pageName.hashCode() + pageText.hashCode();
     }
 }

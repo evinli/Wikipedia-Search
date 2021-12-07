@@ -14,26 +14,26 @@ public class FSFTBuffer<T extends Bufferable> {
     private static final int CONVERT_MS_TO_S = 1000;
     private int maxTime;
     private int maxCapacity;
-    private Stack<T> buffer; // tracks objects in order of usage time (top of stack = most recently used)
-    private HashMap<String, T> bufferItems; // look-up table for objects given an object ID
-    private HashMap<String, Integer> accessTimes; // look-up table for latest access time given an object ID
-
-    //TODO: note to self - access time determines how long before an object times out
-    //                   - usage time determines which non-timed-out object should be evicted first when the buffer is full
+    private Stack<T> buffer;
+    private HashMap<String, T> bufferItems;
+    private HashMap<String, Integer> accessTimes;
 
     /**
      * Abstraction function:
      *      AF(buffer) = all objects in the finite-space, finite-time buffer
-     *      AF(bufferItems.keySet()) = IDs of all objects in the finite-space, finite-time buffer
+     *      AF(bufferItems.keySet()) = IDs of all objects in the finite-space,
+     *                                 finite-time buffer
      *      AF(accessTimes.get(ID)) = latest access time for a given object ID
-     *      AF(maxTime) = the duration (in seconds) before an object times out in the buffer
+     *      AF(maxTime) = the duration (in seconds) before an object times out
+     *                    in the buffer
      *      AF(maxCapacity) = the maximum number of objects the buffer can hold
      */
 
     /**
      * Rep invariant:
      *      for every object in buffer, there should be a key corresponding
-     *          to object.id() that exists both within bufferItems.keySet() and accessTimes.keySet()
+     *          to object.id() that exists both within bufferItems.keySet()
+     *          and accessTimes.keySet()
      *      buffer contains no duplicate objects
      */
 
@@ -52,7 +52,9 @@ public class FSFTBuffer<T extends Bufferable> {
     /**
      * Create a buffer with a fixed capacity and a timeout value.
      * Objects in the buffer that have not been refreshed within the
-     * timeout period are removed from the cache.
+     * timeout period are removed from the cache. In other words,
+     * objects are removed if the current time is >= than its
+     * designated timeout time.
      *
      * @param capacity the number of objects the buffer can hold
      * @param timeout  the duration, in seconds, an object should
@@ -93,22 +95,16 @@ public class FSFTBuffer<T extends Bufferable> {
             return false;
         }
         synchronized (this) {
-            // if buffer is full, remove least-recently-used (LRU) object @bottom of buffer stack
             if (buffer.size() == maxCapacity) {
                 bufferItems.remove(buffer.get(0).id());
                 accessTimes.remove(buffer.get(0).id());
                 buffer.remove(0);
             }
-
-            // if object is in buffer and hasn't timed out, change nothing
-            // if object isn't in buffer, add it in with the current time and push to top of buffer stack
             if (!buffer.contains(t)) {
                 bufferItems.put(t.id(), t);
                 accessTimes.put(t.id(), currentTime);
                 buffer.push(t);
             }
-
-            // return true to indicate successful add
             checkRep();
         }
         return true;
@@ -121,7 +117,8 @@ public class FSFTBuffer<T extends Bufferable> {
      *
      * @param id the identifier of the object to be retrieved
      * @return the object that matches the identifier from the buffer
-     * @throws InvalidObjectException if there is no such identifier in the buffer
+     * @throws InvalidObjectException if there is no such identifier in the
+     * buffer
      */
     public T get(String id) throws InvalidObjectException {
         int currentTime = (int) System.currentTimeMillis() / CONVERT_MS_TO_S;
@@ -129,7 +126,6 @@ public class FSFTBuffer<T extends Bufferable> {
 
         synchronized (this) {
             if (bufferItems.containsKey(id)) {
-                // move object to top of buffer stack to update LRU status
                 buffer.remove(buffer.indexOf(bufferItems.get(id)));
                 buffer.push(bufferItems.get(id));
                 checkRep();
@@ -141,8 +137,8 @@ public class FSFTBuffer<T extends Bufferable> {
 
     /**
      * Update the last access time for the object with the provided id so as to
-     * extend its absolute timeout time. Note that repeated "touches" of an object
-     * affect its access time, but not its usage time.
+     * extend its absolute timeout time. Note that repeated "touches" of an
+     * object affect its access time, but not its usage time.
      *
      * @param id the identifier of the object to "touch"
      * @return true if successful and false if no object with the provided id
@@ -154,7 +150,6 @@ public class FSFTBuffer<T extends Bufferable> {
 
         synchronized (this) {
             if (bufferItems.containsKey(id)) {
-                // renew access time of object t
                 accessTimes.put(id, currentTime);
                 return true;
             }
@@ -177,7 +172,6 @@ public class FSFTBuffer<T extends Bufferable> {
 
         synchronized (this) {
             if (bufferItems.containsKey(t.id())) {
-                //update existing object t in buffer and renew access time
                 buffer.set(buffer.indexOf(bufferItems.get(t.id())), t);
                 bufferItems.put(t.id(), t);
                 accessTimes.put(t.id(), currentTime);
@@ -194,10 +188,11 @@ public class FSFTBuffer<T extends Bufferable> {
      * @param currentTime the time at which the buffer is accessed
      */
     private void updateBuffer(int currentTime) {
-        // remove all timed-out objects
         synchronized (this) {
-            accessTimes.entrySet().removeIf(o -> o.getValue() + maxTime < currentTime);
-            bufferItems.entrySet().removeIf(o -> !accessTimes.containsKey(o.getKey()));
+            accessTimes.entrySet().removeIf(o -> o.getValue() + maxTime
+                    <= currentTime);
+            bufferItems.entrySet().removeIf(o -> !accessTimes.containsKey
+                    (o.getKey()));
             buffer.removeIf(o -> !bufferItems.containsValue(o));
             checkRep();
         }
