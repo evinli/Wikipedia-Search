@@ -1,7 +1,6 @@
 package cpen221.mp3.server;
 
 import java.io.*;
-import java.math.BigInteger;
 import java.net.Socket;
 
 public class WikiMediatorClient {
@@ -41,8 +40,7 @@ public class WikiMediatorClient {
             System.out.println("search " + x + " = " + y);
 
             client.close();
-        }
-        catch (IOException ioe) {
+        } catch (IOException ioe) {
             ioe.printStackTrace();
         }
     }

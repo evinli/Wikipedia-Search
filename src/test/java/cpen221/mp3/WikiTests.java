@@ -116,21 +116,17 @@ public class WikiTests {
         wikiMed5.search("poke", 3);
         wikiMed5.search("poke", 3);
 
-
         wikiMed5.search("spaghetti", 1);
         wikiMed5.getPage("spaghetti");
         wikiMed5.getPage("spaghetti");
 
-
         wikiMed5.getPage("Cardi B");
         wikiMed5.getPage("Cardi B");
-
 
         wikiMed5.getPage("drake");
         wikiMed5.search("halsey", 10);
 
         results = wikiMed5.zeitgeist(2);
-
         Assertions.assertLinesMatch(expected, results);
     }
 
@@ -138,7 +134,6 @@ public class WikiTests {
 
     @Test
     public void testTrending1() {
-        int limit = 2;
         List<String> results = new ArrayList<>();
         List<String> expected = new ArrayList<>();
         expected.add("poke");
@@ -149,7 +144,6 @@ public class WikiTests {
         wikiMed6.search("poke", 3);
         wikiMed6.search("poke", 3);
         wikiMed6.search("poke", 3);
-
 
         wikiMed6.search("spaghetti", 1);
         wikiMed6.getPage("spaghetti");
@@ -162,7 +156,6 @@ public class WikiTests {
         wikiMed6.search("halsey", 10);
 
         results = wikiMed6.trending(30, 3);
-
         Assertions.assertLinesMatch(expected, results);
     }
 
@@ -194,7 +187,6 @@ public class WikiTests {
         wikiMed7.search("halsey", 10);
 
         results = wikiMed7.trending(10, 3);
-
         Assertions.assertLinesMatch(expected, results);
     }
 
