@@ -48,11 +48,11 @@ public class WikiMediator {
      */
 
     class WikiMediatorData {
-        private HashMap<String, ArrayList> pageSearch;
+        private HashMap<String, ArrayList<Integer>> pageSearch;
         private ArrayList methodCall;
         private int startTime;
 
-        public WikiMediatorData(HashMap<String, ArrayList> pageSearch, ArrayList methodCall, int startTime) {
+        public WikiMediatorData(HashMap<String, ArrayList<Integer>> pageSearch, ArrayList methodCall, int startTime) {
             this.pageSearch = pageSearch;
             this.methodCall = methodCall;
             this.startTime = startTime;
@@ -278,7 +278,7 @@ public class WikiMediator {
     //TODO: liam - do we need specs for these?
     public void stop() {
         Gson gson = new Gson();
-        WikiMediatorData wd = new WikiMediatorData(this.pageSearches,this.methodsCalls,this.StartTime);
+        WikiMediatorData wd = new WikiMediatorData(this.pageSearches,this.methodsCalls,this.startTime);
         String json = gson.toJson(wd);
         try (PrintWriter out = new PrintWriter
                 ("local/WikiMediatorSave.txt")) { out.println(json);
