@@ -48,41 +48,21 @@ public class WikiMediator {
      */
 
     /**
-     * Thread-safety argument:
-     *      all critical regions are locked in a synchronized (this) block to
-     *          prevent multiple threads from accessing shared data at the
-     *          same time
+     * Gson mapping class used to store data between WikiMediatorServer sessions
      */
-
-    //TODO: madi - tested!! not sure where you wanted to checkRep(), so i didn't add
-    //      it to anywhere yet
-    /**
-     * Check that the rep invariant is true.
-     */
-    private void checkRep() {
-        ArrayList<Integer> callsByPage = new ArrayList<>();
-        ArrayList<Integer> allCalls = new ArrayList<>();
-
-        allCalls.addAll(Collections.unmodifiableList(methodsCalls));
-        for (String page : pageSearches.keySet()) {
-            callsByPage.addAll(Collections.unmodifiableList(pageSearches.
-                    get(page)));
-        }
-
-        Collections.sort(callsByPage);
-        Collections.sort(allCalls);
-        assert callsByPage.equals(allCalls);
-    }
-
-    //TODO: liam - do we need specs for these?
     class WikiMediatorData {
         private HashMap<String, ArrayList<Integer>> pageSearch;
-        private ArrayList<Integer> methodCall;
+        private ArrayList methodCall;
+        private int startTime;
 
-        public WikiMediatorData(HashMap<String, ArrayList<Integer>> pageSearch,
-                                ArrayList<Integer> methodCall) {
+        /**
+         * Initializer
+         * Parameters are a subset of the WikiMediator class variables
+         */
+        public WikiMediatorData(HashMap<String, ArrayList<Integer>> pageSearch, ArrayList methodCall, int startTime) {
             this.pageSearch = pageSearch;
             this.methodCall = methodCall;
+            this.startTime = startTime;
         }
     }
 
@@ -109,12 +89,13 @@ public class WikiMediator {
                     WikiMediatorData.class);
             pageSearches = wd.pageSearch;
             methodsCalls = wd.methodCall;
+            startTime = wd.startTime;
         } catch (Exception e) {
             pageSearches = new HashMap<>();
             methodsCalls = new ArrayList<>();
+            startTime = (int)(System.currentTimeMillis() / CONVERT_MS_TO_S);
         }
         cache = new FSFTBuffer<>(capacity, stalenessInterval);
-        startTime = (int)(System.currentTimeMillis() / CONVERT_MS_TO_S);
     }
 
 
@@ -301,11 +282,13 @@ public class WikiMediator {
         return windowedPeakLoad(30);
     }
 
-    //TODO: liam - do we need specs for these?
-    public void stop() {
+    /**
+     * Saves data needed by zeitgeist and trending to a local file
+     * DOES NOT SHUT DOWN SERVER
+     */
+    public void close() {
         Gson gson = new Gson();
-        WikiMediatorData wd = new WikiMediatorData(this.pageSearches,
-                this.methodsCalls);
+        WikiMediatorData wd = new WikiMediatorData(this.pageSearches,this.methodsCalls,this.startTime);
         String json = gson.toJson(wd);
         try (PrintWriter out = new PrintWriter
                 ("local/WikiMediatorSave.txt")) { out.println(json);
@@ -313,4 +296,5 @@ public class WikiMediator {
             throw new RuntimeException("Error writing to file");
         }
     }
+
 }
