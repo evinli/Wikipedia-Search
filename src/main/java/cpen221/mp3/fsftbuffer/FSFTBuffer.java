@@ -38,6 +38,13 @@ public class FSFTBuffer<T extends Bufferable> {
      */
 
     /**
+     * Thread-safety argument:
+     *      all critical regions are locked in a synchronized (this) block to
+     *          prevent multiple threads from accessing shared data at the
+     *          same time
+     */
+
+    /**
      * Check that the rep invariant is true.
      */
     private void checkRep() {

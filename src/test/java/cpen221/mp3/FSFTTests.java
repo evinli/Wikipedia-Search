@@ -104,7 +104,7 @@ public class FSFTTests {
         Thread.sleep(3 * 1000);
 
         // can't touch a stale object
-        Assertions.assertFalse(buffer2.touch("a"));
+        Assertions.assertFalse(buffer2.update(b1));
     }
 
     @Test
@@ -167,10 +167,5 @@ public class FSFTTests {
         } catch (InvalidObjectException e) {
             e.printStackTrace();
         }
-    }
-
-    @Test
-    public void testThreadSafety() {
-
     }
 }

@@ -29,8 +29,8 @@ public class WikiMediatorRequest {
             this.id = id;
             this.status = status;
             this.response = response;
-
         }
+
         public String respond() {
             Gson gson = new Gson();
             return gson.toJson(this);
@@ -48,6 +48,7 @@ public class WikiMediatorRequest {
             this.response = response;
 
         }
+
         public String respond() {
             Gson gson = new Gson();
             return gson.toJson(this);
@@ -62,14 +63,14 @@ public class WikiMediatorRequest {
         List<String> lResponse = null;
         Gson gson = new Gson();
         if (type.equals("search")) {
-           try {
-               lResponse = wikiMediator.search(query, limit);
-               status = "success";
-           } catch (Exception e) {
-               status = "failed";
-           }
-           ListResponse r = new ListResponse(request_id, status, lResponse);
-           json_response = r.respond();
+            try {
+                lResponse = wikiMediator.search(query, limit);
+                status = "success";
+            } catch (Exception e) {
+                status = "failed";
+            }
+            ListResponse r = new ListResponse(request_id, status, lResponse);
+            json_response = r.respond();
         }
 
         if (type.equals("getPage")) {
