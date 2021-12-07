@@ -125,9 +125,10 @@ public class WikiMediator {
      */
     public List<String> search(String query, int limit) {
         List<String> matches = wiki.search(query, limit);
-        int absoluteTime = (int) System.currentTimeMillis() / CONVERT_MS_TO_S;
 
         synchronized (this) {
+            int absoluteTime = (int) System.currentTimeMillis() /
+                    CONVERT_MS_TO_S;
             if (pageSearches.containsKey(query)) {
                 pageSearches.get(query).add(absoluteTime - startTime);
                 methodsCalls.add(absoluteTime - startTime);
@@ -151,7 +152,6 @@ public class WikiMediator {
     public synchronized String getPage(String pageTitle) {
         String text;
         WikiPage page = new WikiPage(pageTitle);
-        int absoluteTime = (int) System.currentTimeMillis() / CONVERT_MS_TO_S;
 
         try {
             text = cache.get(pageTitle).text();
@@ -160,6 +160,7 @@ public class WikiMediator {
             cache.put(page);
         }
 
+        int absoluteTime = (int) System.currentTimeMillis() / CONVERT_MS_TO_S;
         if (pageSearches.containsKey(pageTitle)) {
             pageSearches.get(pageTitle).add(absoluteTime - startTime);
             methodsCalls.add(absoluteTime - startTime);
