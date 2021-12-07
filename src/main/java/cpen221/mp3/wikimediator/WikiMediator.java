@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import cpen221.mp3.exceptions.InvalidObjectException;
 import cpen221.mp3.fsftbuffer.FSFTBuffer;
 import org.fastily.jwiki.core.Wiki;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -15,10 +14,7 @@ import java.util.stream.Collectors;
  * A immutable data type that represents a mediator service for Wikipedia.
  */
 public class WikiMediator {
-    //TODO: madi - do we still need a Wiki instance variable here now that we have
-    //      the WikiPage?
     Wiki wiki = new Wiki.Builder().withDomain("en.wikipedia.org").build();
-
     private static final int CONVERT_MS_TO_S = 1000;
     private FSFTBuffer<WikiPage> cache;
     private HashMap<String, ArrayList<Integer>> pageSearches;
@@ -39,11 +35,8 @@ public class WikiMediator {
      *      AF(startTime) = reference time
      */
 
-    //TODO: madi - cache RI is already enforced by the line "FSFTBuffer<WikiPage> cache",
-    //      can technically delete the cache RI
     /**
      * Rep invariant:
-     *      every object stored in the FSFTBuffer cache is of type Wikipage
      *      every timestamp in pageSearches also exists in methodCalls
      */
 
@@ -54,35 +47,24 @@ public class WikiMediator {
      *          same time
      */
 
-    //TODO: madi - tested!! not sure where you wanted to checkRep(), so i didn't add
-    //      it to anywhere yet
     /**
-     * Check that the rep invariant is true.
+     * GSON mapping class used to store data between WikiMediatorServer
+     * sessions.
      */
-    private void checkRep() {
-        ArrayList<Integer> callsByPage = new ArrayList<>();
-        ArrayList<Integer> allCalls = new ArrayList<>();
-
-        allCalls.addAll(Collections.unmodifiableList(methodsCalls));
-        for (String page : pageSearches.keySet()) {
-            callsByPage.addAll(Collections.unmodifiableList(pageSearches.
-                    get(page)));
-        }
-
-        Collections.sort(callsByPage);
-        Collections.sort(allCalls);
-        assert callsByPage.equals(allCalls);
-    }
-
-    //TODO: liam - do we need specs for these?
     class WikiMediatorData {
         private HashMap<String, ArrayList<Integer>> pageSearch;
-        private ArrayList<Integer> methodCall;
+        private ArrayList methodCall;
+        private int startTime;
 
+        /**
+         * Initializer:
+         * Parameters are a subset of the WikiMediator class variables
+         */
         public WikiMediatorData(HashMap<String, ArrayList<Integer>> pageSearch,
-                                ArrayList<Integer> methodCall) {
+                                ArrayList methodCall, int startTime) {
             this.pageSearch = pageSearch;
             this.methodCall = methodCall;
+            this.startTime = startTime;
         }
     }
 
@@ -95,7 +77,8 @@ public class WikiMediator {
      * rather than when they're initially called (accounts for subtle time
      * delays).
      *
-     * @param capacity the maximum number of Wiki the WikiMediator can store
+     * @param capacity the maximum number of Wikipedia pages the WikiMediator
+     *                 can store
      * @param stalenessInterval the time it takes for a page to become stale in
      *                          the WikiMediator
      */
@@ -109,12 +92,13 @@ public class WikiMediator {
                     WikiMediatorData.class);
             pageSearches = wd.pageSearch;
             methodsCalls = wd.methodCall;
+            startTime = wd.startTime;
         } catch (Exception e) {
             pageSearches = new HashMap<>();
             methodsCalls = new ArrayList<>();
+            startTime = (int) (System.currentTimeMillis() / CONVERT_MS_TO_S);
         }
         cache = new FSFTBuffer<>(capacity, stalenessInterval);
-        startTime = (int)(System.currentTimeMillis() / CONVERT_MS_TO_S);
     }
 
 
@@ -128,7 +112,7 @@ public class WikiMediator {
      */
     public List<String> search(String query, int limit) {
         List<String> matches = wiki.search(query, limit);
-        int absoluteTime = (int)(System.currentTimeMillis() /
+        int absoluteTime = (int) (System.currentTimeMillis() /
                 CONVERT_MS_TO_S);
 
         synchronized (this) {
@@ -164,7 +148,7 @@ public class WikiMediator {
             cache.put(page);
         }
 
-        int absoluteTime = (int)(System.currentTimeMillis() / CONVERT_MS_TO_S);
+        int absoluteTime = (int) (System.currentTimeMillis() / CONVERT_MS_TO_S);
         if (pageSearches.containsKey(pageTitle)) {
             pageSearches.get(pageTitle).add(absoluteTime - startTime);
             methodsCalls.add(absoluteTime - startTime);
@@ -189,7 +173,7 @@ public class WikiMediator {
     public List<String> zeitgeist(int limit) {
         List<String> mostCommon;
         HashMap<String, Integer> reduced = new HashMap<>();
-        int absoluteTime = (int)(System.currentTimeMillis() /
+        int absoluteTime = (int) (System.currentTimeMillis() /
                 CONVERT_MS_TO_S);
 
         synchronized (this) {
@@ -212,14 +196,15 @@ public class WikiMediator {
      * {@code maxItems} of the most frequent requests.
      *
      * @param timeLimitInSeconds the time window to return requests from
-     * @param maxItems the maximum number of items that should be returned
+     * @param maxItems           the maximum number of items that should be
+     *                           returned
      * @return returns list of most frequent requests made in last
      * {@code timeLimitInSeconds} seconds
      */
     public List<String> trending(int timeLimitInSeconds, int maxItems) {
         List<String> mostFrequent;
         HashMap<String, Integer> reduced = new HashMap<>();
-        int currentTime = (int)(System.currentTimeMillis() /
+        int currentTime = (int) (System.currentTimeMillis() /
                 CONVERT_MS_TO_S) - startTime;
 
         synchronized (this) {
@@ -235,7 +220,7 @@ public class WikiMediator {
                     }
                     count++;
                 }
-                if(count > 0) {
+                if (count > 0) {
                     reduced.put(key, count);
                 }
             }
@@ -261,7 +246,7 @@ public class WikiMediator {
     public int windowedPeakLoad(int timeWindowInSeconds) {
         int maxRequest = 0;
         int tempMax = 0;
-        int absoluteTime = (int)(System.currentTimeMillis() /
+        int absoluteTime = (int) (System.currentTimeMillis() /
                 CONVERT_MS_TO_S);
 
         synchronized (this) {
@@ -301,14 +286,18 @@ public class WikiMediator {
         return windowedPeakLoad(30);
     }
 
-    //TODO: liam - do we need specs for these?
-    public void stop() {
+    /**
+     * Saves data needed by zeitgeist() and trending() requests to a local file.
+     * Note: This does not shut down the server.
+     */
+    public void close() {
         Gson gson = new Gson();
         WikiMediatorData wd = new WikiMediatorData(this.pageSearches,
-                this.methodsCalls);
+                this.methodsCalls, this.startTime);
         String json = gson.toJson(wd);
         try (PrintWriter out = new PrintWriter
-                ("local/WikiMediatorSave.txt")) { out.println(json);
+                ("local/WikiMediatorSave.txt")) {
+            out.println(json);
         } catch (IOException e) {
             throw new RuntimeException("Error writing to file");
         }

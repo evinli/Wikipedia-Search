@@ -4,7 +4,6 @@ import java.io.*;
 import java.net.Socket;
 
 public class WikiMediatorClient {
-    private static final int N = 100;
     private Socket socket;
     private BufferedReader in;
     // Rep invariant: socket, in, out != null
@@ -23,44 +22,22 @@ public class WikiMediatorClient {
     }
 
     /**
-     * Test search
-     */
-    public static void main(String[] args) {
-        try {
-            WikiMediatorClient client = new WikiMediatorClient("127.0.0.1",
-                    WikiMediatorServer.WIKIMEDIATOR_PORT);
-
-            String x = "{ \"id\": \"1\", \"type\": \"search\", \"query\": \"Barack Obama\", \"limit\": \"12\"}";
-
-            client.sendRequest(x);
-            System.out.println("search " + x + " = ?");
-
-
-            String y = client.getReply();
-            System.out.println("search " + x + " = " + y);
-
-            client.close();
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-        }
-    }
-
-    /**
      * Send a request to the server. Requires this is "open".
      *
-     * @param x to find Fibonacci(x)
+     * @param request query for WikiMediator, must be in JSON string formatted
+     *                to the spec of WikiMediatorRequest
      * @throws IOException if network or server failure
      */
-    public void sendRequest(String x) throws IOException {
-        out.print(x + "\n");
-        out.flush(); // important! make sure x actually gets sent
+    public void sendRequest(String request) throws IOException {
+        out.print(request + "\n");
+        out.flush();
     }
 
     /**
      * Get a reply from the next request that was submitted.
      * Requires this is "open".
      *
-     * @return the requested Fibonacci number
+     * @return the response from WikiMediator
      * @throws IOException if network or server failure
      */
     public String getReply() throws IOException {

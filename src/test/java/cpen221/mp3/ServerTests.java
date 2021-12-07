@@ -22,12 +22,53 @@ public class ServerTests {
 
     @Test
     public void searchTest() {
-        String request = "{\"id\":\"1\",\"type\":\"search\",\"query\":\"Barack Obama\",\"limit\":\"12\"}";
+        String request = "{\"id\":\"1\",\"type\":\"search\",\"query\":\"" +
+                "Barack Obama\",\"limit\":\"12\",\"timeout\":\"1\"}";
         try {
             client.sendRequest(request);
             String reply = client.getReply();
             //client.close();
-            Assertions.assertNotNull(reply);
+            Assertions.assertEquals(true, reply.contains("Obama"));
+            //Assertions.assertNotNull(reply);
+        } catch (Exception IOException) {
+            throw new AssertionFailedError();
+        }
+    }
+
+    @Test
+    public void searchTestTimeout1() {
+        String request = "{\"id\":\"1\",\"type\":\"search\",\"query\":\"" +
+                "Earth\",\"limit\":\"1000\",\"timeout\":\"2\"}";
+        try {
+            client.sendRequest(request);
+            String reply = client.getReply();
+            Assertions.assertEquals(true, reply.contains("failed"));
+        } catch (Exception IOException) {
+            throw new AssertionFailedError();
+        }
+    }
+
+    @Test
+    public void searchTestTimeout2() {
+        String request = "{\"id\":\"1\",\"type\":\"search\",\"query\":\"" +
+                "Earth\",\"limit\":\"10\",\"timeout\":\"2\"}";
+        try {
+            client.sendRequest(request);
+            String reply = client.getReply();
+            Assertions.assertEquals(true, reply.contains("success"));
+        } catch (Exception IOException) {
+            throw new AssertionFailedError();
+        }
+    }
+
+    @Test
+    public void searchTestTimeout3() {
+        String request = "{\"id\":\"1\",\"type\":\"search\",\"query\":\"" +
+                "Earth\",\"limit\":\"1000\",\"timeout\":\"10\"}";
+        try {
+            client.sendRequest(request);
+            String reply = client.getReply();
+            Assertions.assertEquals(true, reply.contains("success"));
         } catch (Exception IOException) {
             throw new AssertionFailedError();
         }
@@ -44,7 +85,7 @@ public class ServerTests {
             client.sendRequest(request);
             String reply = client.getReply();
             //client.close();
-            Assertions.assertNotNull(reply);
+            Assertions.assertEquals(true, reply.contains("success"));
         } catch (Exception IOException) {
             throw new AssertionFailedError();
         }
@@ -57,7 +98,8 @@ public class ServerTests {
             client.sendRequest(request);
             String reply = client.getReply();
             //client.close();
-            Assertions.assertEquals("bye", reply);
+            Assertions.assertEquals("{\"id\":\"ten\",\"" +
+                    "response\":\"bye\"}", reply);
         } catch (Exception IOException) {
             throw new AssertionFailedError();
         }
