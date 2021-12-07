@@ -24,7 +24,8 @@ public class WikiMediatorClient {
     /**
      * Send a request to the server. Requires this is "open".
      *
-     * @param request query for WikiMediator, must be in JSON string formatted to the spec of WikiMediatorRequest
+     * @param request query for WikiMediator, must be in JSON string formatted
+     *                to the spec of WikiMediatorRequest
      * @throws IOException if network or server failure
      */
     public void sendRequest(String request) throws IOException {
