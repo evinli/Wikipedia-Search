@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 public class FSFTTests {
 
     public static FSFTBuffer<Buffer> buffer1, buffer2, buffer3,
-            buffer4, buffer5, buffer6;
+            buffer4, buffer5, buffer6, buffer7;
     public static Buffer b1, b2, b3, b4;
 
     @BeforeAll
@@ -21,6 +21,7 @@ public class FSFTTests {
         buffer4 = new FSFTBuffer(5, 2);
         buffer5 = new FSFTBuffer(3, 5);
         buffer6 = new FSFTBuffer(15, 15);
+        buffer7 = new FSFTBuffer();
         b1 = new Buffer("a", "aaa");
         b2 = new Buffer("b", "bbb");
         b3 = new Buffer("c", "ccc");
@@ -164,6 +165,26 @@ public class FSFTTests {
         // expected: b5 is the updated version of b1
         try {
             Assertions.assertEquals(b5, buffer6.get("a"));
+        } catch (InvalidObjectException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testOverloadedConstructor() {
+        buffer7.put(b1);
+        buffer7.put(b2);
+        buffer7.put(b3);
+        buffer7.put(b4);
+
+        Buffer b5 = new Buffer("a", "updated_aaa");
+        Assertions.assertTrue(buffer7.update(b5));
+
+        // expected: b5 is the updated version of b1
+        try {
+            Assertions.assertEquals(b5, buffer7.get("a"));
+            Assertions.assertEquals("updated_aaa",
+                    buffer7.get("a").text());
         } catch (InvalidObjectException e) {
             e.printStackTrace();
         }
