@@ -1,6 +1,5 @@
 package cpen221.mp3;
 
-import cpen221.mp3.exceptions.InvalidObjectException;
 import cpen221.mp3.wikimediator.WikiMediator;
 import cpen221.mp3.wikimediator.WikiPage;
 import org.junit.jupiter.api.Assertions;
@@ -43,7 +42,7 @@ public class WikiTests {
     }
 
     @Test
-    public void testGetPageSearch(){
+    public void testGetPageSearch() {
         System.out.println(wikiMed9.getPage("Doja Cat"));
         System.out.println(wikiMed9.search("Doja Cat", 3));
     }
@@ -146,8 +145,6 @@ public class WikiTests {
         Assertions.assertLinesMatch(expected, results);
     }
 
-    //TODO make tests for doubles of the same value
-
     @Test
     public void testTrending1() {
         List<String> results = new ArrayList<>();
@@ -176,7 +173,7 @@ public class WikiTests {
     }
 
     //test trending for the last 10 seconds, which does not include some items
-   @Test
+    @Test
     public void testTrending2() throws InterruptedException {
         int limit = 2;
         List<String> results = new ArrayList<>();
@@ -190,7 +187,7 @@ public class WikiTests {
         wikiMed7.search("poke", 3);
         wikiMed7.search("poke", 3);
 
-        Thread.sleep(12*1000);
+        Thread.sleep(12 * 1000);
 
         wikiMed7.getPage("Cardi B");
         wikiMed7.getPage("Cardi B");
@@ -206,7 +203,8 @@ public class WikiTests {
         Assertions.assertLinesMatch(expected, results);
     }
 
-    //test trending for the last 3 seconds where no methods were called, should return empty arraylist
+    // test trending for the last 3 seconds where no methods were called,
+    // should return empty arraylist
     @Test
     public void testTrendingEmpty() throws InterruptedException {
         int limit = 10;
@@ -216,7 +214,7 @@ public class WikiTests {
         wikiMed8.getPage("pho");
         wikiMed8.search("curry", 7);
 
-        Thread.sleep(5*1000);
+        Thread.sleep(5 * 1000);
 
         results = wikiMed8.trending(3, limit);
 
@@ -230,14 +228,12 @@ public class WikiTests {
         int result;
         int timeWindow = 30;
 
-
         result = wikiMed10.windowedPeakLoad(timeWindow);
         Assertions.assertEquals(expected, result);
-
-//  test for peak load with zeigeist
     }
+
     @Test
-    public void wikiThreadSafe() throws InterruptedException{
+    public void wikiThreadSafe() throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(4);
         int result;
 
@@ -251,12 +247,12 @@ public class WikiTests {
             latch.countDown();
         });
 
-        Thread t3 = new Thread(() ->{
+        Thread t3 = new Thread(() -> {
             wikiMedThreadSafe.getPage("physics");
             latch.countDown();
         });
 
-        Thread t4 = new Thread(() ->{
+        Thread t4 = new Thread(() -> {
             wikiMedThreadSafe.getPage("BBL");
             latch.countDown();
         });
@@ -272,8 +268,9 @@ public class WikiTests {
         Assertions.assertEquals(5, result);
 
     }
+
     @Test
-    public void wikiThreadSafe1() throws InterruptedException{
+    public void wikiThreadSafe1() throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(4);
         List<String> expectedList = new ArrayList<>();
         int result;
@@ -291,16 +288,16 @@ public class WikiTests {
             latch.countDown();
         });
 
-        Thread t3 = new Thread(() ->{
+        Thread t3 = new Thread(() -> {
             wikiMedThreadSafe.getPage("math");
             latch.countDown();
         });
 
-        Thread t4 = new Thread(() ->{
+        Thread t4 = new Thread(() -> {
             wikiMedThreadSafe.getPage("math");
             latch.countDown();
         });
-        Thread t5 = new Thread(() ->{
+        Thread t5 = new Thread(() -> {
             wikiMedThreadSafe.search("math", 2);
             latch.countDown();
         });
@@ -315,7 +312,8 @@ public class WikiTests {
         result = wikiMedThreadSafe.windowedPeakLoad();
 
         Assertions.assertEquals(6, result);
-        Assertions.assertLinesMatch(expectedList, wikiMedThreadSafe.zeitgeist(2));
+        Assertions.assertLinesMatch(expectedList, wikiMedThreadSafe.
+                zeitgeist(2));
 
     }
 }
