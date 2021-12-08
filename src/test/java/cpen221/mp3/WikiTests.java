@@ -91,34 +91,7 @@ public class WikiTests {
         Assertions.assertEquals(expected, result);
     }
 
-    @Test
-    public void windowedPeakLoadTest3() throws InterruptedException {
-        int expected = 5;
-        int result;
-        int timeWindow = 30;
 
-        wikiMed3.getPage("sushi");
-        wikiMed3.search("spaghetti", 1);
-        wikiMed3.search("poke", 2);
-        wikiMed3.getPage("sushi");
-
-        Thread.sleep(32 * 1000);
-
-        wikiMed3.search("spaghetti", 1);
-        wikiMed3.search("poke", 2);
-        wikiMed3.getPage("Cardi B");
-        wikiMed3.search("poke", 2);
-        wikiMed3.search("poke", 2);
-
-        Thread.sleep(32 * 1000);
-
-        wikiMed3.search("spaghetti", 1);
-        wikiMed3.search("poke", 2);
-        wikiMed3.getPage("Cardi B");
-
-        result = wikiMed3.windowedPeakLoad();
-        Assertions.assertEquals(expected, result);
-    }
 
     @Test
     public void testZeigeist1() {
@@ -315,5 +288,34 @@ public class WikiTests {
         Assertions.assertEquals(6, result);
         Assertions.assertLinesMatch(expectedList, wikiMedThreadSafe1.
                 zeitgeist(2));
+    }
+    @Test
+    public void windowedPeakLoadTest3() throws InterruptedException {
+        int expected = 6;
+        int result;
+        int timeWindow = 30;
+
+        wikiMed3.getPage("sushi");
+        wikiMed3.search("spaghetti", 1);
+        wikiMed3.search("poke", 2);
+        wikiMed3.getPage("sushi");
+
+        Thread.sleep(32 * 1000);
+
+        wikiMed3.getPage("Cardi B");
+        wikiMed3.search("spaghetti", 1);
+        wikiMed3.search("poke", 2);
+        wikiMed3.getPage("Cardi B");
+        wikiMed3.search("poke", 2);
+        wikiMed3.search("poke", 2);
+
+        Thread.sleep(32 * 1000);
+
+        wikiMed3.search("spaghetti", 1);
+        wikiMed3.search("poke", 2);
+        wikiMed3.getPage("Cardi B");
+
+        result = wikiMed3.windowedPeakLoad();
+        Assertions.assertEquals(expected, result);
     }
 }

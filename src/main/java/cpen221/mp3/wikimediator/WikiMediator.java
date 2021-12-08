@@ -64,9 +64,10 @@ public class WikiMediator {
          */
         public WikiMediatorData(HashMap<String, ArrayList<Integer>> pageSearch,
                                 ArrayList methodCall, int startTime) {
-            this.pageSearch = pageSearch;
-            this.methodCall = methodCall;
-            this.startTime = startTime;
+                this.pageSearch = pageSearch;
+                this.methodCall = methodCall;
+                this.startTime = startTime;
+
         }
     }
 
@@ -93,9 +94,11 @@ public class WikiMediator {
                     .next();
             WikiMediatorData wd = gson.fromJson(oldData,
                     WikiMediatorData.class);
-            pageSearches = wd.pageSearch;
-            methodsCalls = wd.methodCall;
-            startTime = wd.startTime;
+
+                pageSearches = wd.pageSearch;
+                methodsCalls = wd.methodCall;
+                startTime = wd.startTime;
+
         } catch (Exception e) {
             pageSearches = new HashMap<>();
             methodsCalls = new ArrayList<>();
@@ -119,10 +122,12 @@ public class WikiMediator {
         Collections.sort(compare);
         Collections.sort(calls);
 
+
         for(int index = 0; index < compare.size(); index++){
-            assert(compare.get(index) == calls.get(index));
+            assert(calls.contains(compare.get(index)));
         }
     }
+
     /**
      * Given a query, return up to limit page titles that match the query string
      * (per Wikipedia's search service).
@@ -146,6 +151,7 @@ public class WikiMediator {
                 pageSearches.get(query).add(absoluteTime - startTime);
                 methodsCalls.add(absoluteTime - startTime);
             }
+
             checkRep();
 
 
@@ -180,6 +186,7 @@ public class WikiMediator {
             pageSearches.get(pageTitle).add(absoluteTime - startTime);
             methodsCalls.add(absoluteTime - startTime);
         }
+
         checkRep();
         return text;
     }
@@ -196,15 +203,16 @@ public class WikiMediator {
     public List<String> zeitgeist(int limit) {
         List<String> mostCommon;
         HashMap<String, Integer> reduced = new HashMap<>();
-        int absoluteTime = (int) (System.currentTimeMillis() /
-                CONVERT_MS_TO_S);
 
         synchronized (this) {
+            int absoluteTime = (int) (System.currentTimeMillis() /
+                    CONVERT_MS_TO_S);
             methodsCalls.add(absoluteTime - startTime);
             for (String key : pageSearches.keySet()) {
                 int size = pageSearches.get(key).size();
                 reduced.put(key, size);
             }
+
             checkRep();
         }
         mostCommon = reduced.entrySet().stream().sorted(Map.Entry.<String,
@@ -249,6 +257,7 @@ public class WikiMediator {
                     reduced.put(key, count);
                 }
             }
+
             checkRep();
         }
         mostFrequent = reduced.entrySet().stream().sorted(Map.Entry.<String,
@@ -270,35 +279,37 @@ public class WikiMediator {
      * @return the maximum number of requests seen at any time window of a given
      * length
      */
-    public int windowedPeakLoad(int timeWindowInSeconds) {
+    public synchronized int windowedPeakLoad(int timeWindowInSeconds) {
         int maxRequest = 0;
         int tempMax = 0;
         int absoluteTime = (int) (System.currentTimeMillis() /
                 CONVERT_MS_TO_S);
 
-        synchronized (this) {
-            methodsCalls.add(absoluteTime - startTime);
-            for (int i = 0; i < methodsCalls.size(); i++) {
-                for (int j = i; j < methodsCalls.size(); j++) {
-                    int valueJ = methodsCalls.get(j);
-                    int valueI = methodsCalls.get(i);
+    synchronized (this) {
+        methodsCalls.add(absoluteTime - startTime);
+        for (int i = 0; i < methodsCalls.size(); i++) {
+            for (int j = i; j < methodsCalls.size(); j++) {
+                int valueJ = methodsCalls.get(j);
+                int valueI = methodsCalls.get(i);
 
-                    if ((valueJ - valueI) > timeWindowInSeconds) {
-                        if ((j - i) > tempMax) {
-                            tempMax = (j - i);
-                        }
-                        break;
-                    } else if (j == methodsCalls.size() - 1) {
-                        if (((j + 1) - i) > tempMax) {
-                            tempMax = (j + 1) - i;
-                        }
-                        break;
+                if ((valueJ - valueI) > timeWindowInSeconds) {
+                    if ((j - i) > tempMax) {
+                        tempMax = (j - i);
                     }
+                    break;
+                } else if (j == methodsCalls.size() - 1) {
+                    if (((j + 1) - i) > tempMax) {
+                        tempMax = (j + 1) - i;
+                    }
+                    break;
                 }
             }
-            maxRequest = tempMax;
-            checkRep();
         }
+
+        maxRequest = tempMax;
+
+        checkRep();
+    }
 
 
         return maxRequest;
