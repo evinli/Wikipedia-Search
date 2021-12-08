@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'jacoco'
 }
 
 group 'CPEN 221'
@@ -16,9 +17,36 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.0'
     implementation 'org.fastily:jwiki:1.8.0'
-    implementation 'com.google.code.gson:gson:2.8.9'}
+    implementation 'com.google.code.gson:gson:2.8.9'
+}
 
 test {
     useJUnitPlatform()
+    finalizedBy jacocoTestReport
 }
 
+check {
+    dependsOn jacocoTestCoverageVerification
+}
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                counter = 'CLASS'
+                value = 'COVEREDRATIO'
+                minimum = 1.0
+            }
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.95
+            }
+            limit {
+                counter = 'BRANCH'
+                value = 'COVEREDRATIO'
+                minimum = 0.85
+            }
+        }
+    }
+}
