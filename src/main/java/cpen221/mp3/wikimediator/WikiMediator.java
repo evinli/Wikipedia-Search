@@ -278,36 +278,37 @@ public class WikiMediator {
      * @return the maximum number of requests seen at any time window of a given
      * length
      */
-    public int windowedPeakLoad(int timeWindowInSeconds) {
+    public  int windowedPeakLoad(int timeWindowInSeconds) {
         int maxRequest = 0;
         int tempMax = 0;
         int absoluteTime = (int) (System.currentTimeMillis() /
                 CONVERT_MS_TO_S);
 
-    synchronized (this) {
-        methodsCalls.add(absoluteTime - startTime);
-        for (int i = 0; i < methodsCalls.size(); i++) {
-            for (int j = i; j < methodsCalls.size(); j++) {
-                int valueJ = methodsCalls.get(j);
-                int valueI = methodsCalls.get(i);
+        synchronized (this) {
+            methodsCalls.add(absoluteTime - startTime);
+            for (int i = 0; i < methodsCalls.size(); i++) {
+                for (int j = i; j < methodsCalls.size(); j++) {
+                    int valueJ = methodsCalls.get(j);
+                    int valueI = methodsCalls.get(i);
 
-                if ((valueJ - valueI) > timeWindowInSeconds) {
-                    if ((j - i) > tempMax) {
-                        tempMax = (j - i);
+                    if ((valueJ - valueI) > timeWindowInSeconds) {
+                        if ((j - i) > tempMax) {
+                            tempMax = (j - i);
+                        }
+                        break;
+                    } else if (j == methodsCalls.size() - 1) {
+                        if (((j + 1) - i) > tempMax) {
+                            tempMax = (j + 1) - i;
+                        }
+                        break;
                     }
-                    break;
-                } else if (j == methodsCalls.size() - 1) {
-                    if (((j + 1) - i) > tempMax) {
-                        tempMax = (j + 1) - i;
-                    }
-                    break;
                 }
             }
         }
+            maxRequest = tempMax;
+            checkRep();
+            return maxRequest;
 
-        maxRequest = tempMax;
-        checkRep();
-        return maxRequest;
     }
 
     /**
