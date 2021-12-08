@@ -122,21 +122,21 @@ public class ServerTests {
     }
 
     @Test
-    public void getPageTestCon() {
+    public void getPageTestManyRequests() {
         String request = "{" +
                 "\t\"id\": \"6\"," +
                 "\t\"type\": \"getPage\"," +
                 "\t\"pageTitle\": \"Markus Thormeyer\"" +
                 "}";
         String reply;
-        for (int i = 0; i < 50; i++) {
+        for (int i = 0; i < 20; i++) {
             try {
                 client1.sendRequest(request);
             } catch (Exception IOException) {
                 throw new AssertionFailedError();
             }
         }
-        for (int i = 0; i < 50; i++) {
+        for (int i = 0; i < 20; i++) {
             try {
                 reply = (client1.getReply());
                 Assertions.assertEquals(true, reply.contains("Markus Thormeyer"));
@@ -147,11 +147,81 @@ public class ServerTests {
     }
 
     @Test
+    public void concurrencyTest() {
+        String request1  = "{\"id\":\"1\",\"type\":\"search\",\"query\":\"" +
+                "Earth\",\"limit\":\"1000\"}";
+        String request2 = "{" +
+                "\t\"id\": \"6\"," +
+                "\t\"type\": \"getPage\"," +
+                "\t\"pageTitle\": \"Markus Thormeyer\"," +
+                "\"timeout\":\"5\"" +
+                "}";
+        try {
+            client1.sendRequest(request1);
+            client2.sendRequest(request2);
+            String reply = client2.getReply();
+            Assertions.assertEquals(true, reply.contains("success"));
+            reply = client1.getReply();
+            Assertions.assertEquals(true, reply.contains("success"));
+
+        } catch (Exception IOException) {
+            throw new AssertionFailedError();
+        }
+    }
+
+    @Test
     public void zeitgeistTest() {
         String request = "{" +
                 "\t\"id\": \"two\"," +
                 "\t\"type\": \"zeitgeist\"," +
                 "\t\"limit\": \"5\"" +
+                "}";
+        try {
+            client1.sendRequest(request);
+            String reply = client1.getReply();
+            Assertions.assertEquals(true, reply.contains("success"));
+        } catch (Exception IOException) {
+            throw new AssertionFailedError();
+        }
+    }
+
+    @Test
+    public void trendingTest() {
+        String request = "{" +
+                "\t\"id\": \"two\"," +
+                "\t\"type\": \"trending\"," +
+                "\t\"limit\": \"5\"" +
+                "}";
+        try {
+            client1.sendRequest(request);
+            String reply = client1.getReply();
+            Assertions.assertEquals(true, reply.contains("success"));
+        } catch (Exception IOException) {
+            throw new AssertionFailedError();
+        }
+    }
+
+    @Test
+    public void windowedPeakLoadTest1() {
+        String request = "{" +
+                "\t\"id\": \"two\"," +
+                "\t\"type\": \"windowedPeakLoad\"," +
+                "\t\"timeWindowInSeconds\": \"15\"" +
+                "}";
+        try {
+            client1.sendRequest(request);
+            String reply = client1.getReply();
+            Assertions.assertEquals(true, reply.contains("success"));
+        } catch (Exception IOException) {
+            throw new AssertionFailedError();
+        }
+    }
+
+    @Test
+    public void windowedPeakLoadTest2() {
+        String request = "{" +
+                "\t\"id\": \"two\"," +
+                "\t\"type\": \"windowedPeakLoad\"" +
                 "}";
         try {
             client1.sendRequest(request);
