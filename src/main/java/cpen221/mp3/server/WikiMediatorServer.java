@@ -16,20 +16,19 @@ public class WikiMediatorServer {
 
     /**
      * Abstraction function:
-     *      1
-     *      2
+     *      AF(serverSocket) = instance of server with a given port number
      */
 
     /**
      * Rep invariant:
-     *      1
-     *      2
+     *      serverSocket is never null
      */
 
     /**
      * Thread-safety argument:
-     *      1
-     *      2
+     *      all new client requests are handled with a new thread, with calls
+     *          on shared data (eg. the WikiMediator) protected by locks and
+     *          synchronization protocols
      */
 
     /**

@@ -10,19 +10,21 @@ public class WikiMediatorClient {
 
     /**
      * Abstraction function:
-     *      1
-     *      2
+     *      AF(socket) = socket used to facilitate interactions between the
+     *                   server and client
+     *      AF(in) = incoming request from the client
+     *      AF(out) = outgoing response from the server
      */
 
     /**
      * Rep invariant:
-     *      socket, in, out != null
+     *      socket, in, and out are never null
      */
 
     /**
      * Thread-safety argument:
-     *      1
-     *      2
+     *      no instance of the object is accessed by multiple threads so it is
+     *          thread safe by nature
      */
 
     /**

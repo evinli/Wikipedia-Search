@@ -69,9 +69,6 @@ public class WikiMediator {
         }
     }
 
-
-
-
     /**
      * Creates a mediator service that accesses Wikipedia to obtain pages
      * and other relevant information. In addition to collecting statistical
@@ -81,8 +78,8 @@ public class WikiMediator {
      * rather than when they're initially called (accounts for subtle time
      * delays).
      *
-     * @param capacity the maximum number of Wikipedia pages the WikiMediator
-     *                 can store
+     * @param capacity          the maximum number of Wikipedia pages the
+     *                          WikiMediator can store
      * @param stalenessInterval the time it takes for a page to become stale in
      *                          the WikiMediator
      */
@@ -95,9 +92,9 @@ public class WikiMediator {
             WikiMediatorData wd = gson.fromJson(oldData,
                     WikiMediatorData.class);
 
-                pageSearches = wd.pageSearch;
-                methodsCalls = wd.methodCall;
-                startTime = wd.startTime;
+            pageSearches = wd.pageSearch;
+            methodsCalls = wd.methodCall;
+            startTime = wd.startTime;
 
         } catch (Exception e) {
             pageSearches = new HashMap<>();
@@ -108,23 +105,23 @@ public class WikiMediator {
     }
 
     /**
-     * check rep invariant for WikiMediator Class
+     * Check that the rep invariant is true.
      */
-    private synchronized void checkRep(){
+    private synchronized void checkRep() {
         List<Integer> compare = new ArrayList<>();
         List<Integer> calls = new ArrayList<>(methodsCalls);
 
-        for(String key: pageSearches.keySet()){
-            for(int index = 0; index < pageSearches.get(key).size(); index++){
+        for (String key : pageSearches.keySet()) {
+            for (int index = 0; index < pageSearches.get(key).size(); index++) {
                 compare.add(pageSearches.get(key).get(index));
             }
         }
+
         Collections.sort(compare);
         Collections.sort(calls);
 
-
-        for(int index = 0; index < compare.size(); index++){
-            assert(calls.contains(compare.get(index)));
+        for (int index = 0; index < compare.size(); index++) {
+            assert (calls.contains(compare.get(index)));
         }
     }
 
@@ -141,20 +138,18 @@ public class WikiMediator {
         List<String> matches;
         int absoluteTime = (int) (System.currentTimeMillis() /
                 CONVERT_MS_TO_S);
-            matches = wiki.search(query, limit);
+        matches = wiki.search(query, limit);
 
-            if (pageSearches.containsKey(query)) {
-                pageSearches.get(query).add(absoluteTime - startTime);
-                methodsCalls.add(absoluteTime - startTime);
-            } else {
-                pageSearches.put(query, new ArrayList<>());
-                pageSearches.get(query).add(absoluteTime - startTime);
-                methodsCalls.add(absoluteTime - startTime);
-            }
+        if (pageSearches.containsKey(query)) {
+            pageSearches.get(query).add(absoluteTime - startTime);
+            methodsCalls.add(absoluteTime - startTime);
+        } else {
+            pageSearches.put(query, new ArrayList<>());
+            pageSearches.get(query).add(absoluteTime - startTime);
+            methodsCalls.add(absoluteTime - startTime);
+        }
 
-            checkRep();
-
-
+        checkRep();
         return matches;
     }
 
@@ -211,13 +206,12 @@ public class WikiMediator {
                 int size = pageSearches.get(key).size();
                 reduced.put(key, size);
             }
-
             checkRep();
         }
+
         mostCommon = reduced.entrySet().stream().sorted(Map.Entry.<String,
                 Integer>comparingByValue().reversed()).limit(limit).map(e ->
                 e.getKey()).collect(Collectors.toList());
-
 
         return mostCommon;
     }
@@ -256,13 +250,12 @@ public class WikiMediator {
                     reduced.put(key, count);
                 }
             }
-
             checkRep();
         }
+
         mostFrequent = reduced.entrySet().stream().sorted(Map.Entry.<String,
                 Integer>comparingByValue().reversed()).limit(maxItems).map(e ->
                 e.getKey()).collect(Collectors.toList());
-
 
         return mostFrequent;
     }
@@ -278,7 +271,7 @@ public class WikiMediator {
      * @return the maximum number of requests seen at any time window of a given
      * length
      */
-    public  int windowedPeakLoad(int timeWindowInSeconds) {
+    public int windowedPeakLoad(int timeWindowInSeconds) {
         int maxRequest = 0;
         int tempMax = 0;
         int absoluteTime = (int) (System.currentTimeMillis() /
@@ -305,10 +298,10 @@ public class WikiMediator {
                 }
             }
         }
-            maxRequest = tempMax;
-            checkRep();
-            return maxRequest;
+        maxRequest = tempMax;
+        checkRep();
 
+        return maxRequest;
     }
 
     /**
@@ -331,9 +324,8 @@ public class WikiMediator {
      * @return a list of page titles (including the starting and ending pages)
      * on the shortest computed path; if no path exists, return an empty list
      */
-    public List<String> shortestPath(String pageTitle1, String pageTitle2,
-                                     int timeout) throws
-            TimeoutException {
+    public List<String> shortestPath(String pageTitle1, String
+            pageTitle2, int timeout) throws TimeoutException {
         return null;
     }
 

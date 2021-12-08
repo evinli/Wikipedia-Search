@@ -22,22 +22,21 @@ public class WikiMediatorRequest {
 
     /**
      * Abstraction function:
-     * id -> id of the request
-     * status -> of the request ("success" or "failed")
-     * response -> response to request
+     *      AF(id) = id of the request
+     *      AF(status) = status of the request ("success" or "failed")
+     *      AF(response) = response to client request
      */
 
     /**
      * Rep Invariant:
-     * ID is never null
-     * status is never null
-     *
+     *      ID is never null
+     *      status is never null
      */
 
     /**
-     * Thread Safety:
-     * No instance of the object are accessed by multiple threads so by nature
-     * is thread safe.
+     * Thread-safety argument:
+     *      no instance of the object is accessed by multiple threads so it is
+     *          thread safe by nature
      */
 
     /**
