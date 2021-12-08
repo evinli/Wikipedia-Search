@@ -108,7 +108,7 @@ public class WikiMediator {
      * Given a query, return up to limit page titles that match the query string
      * (per Wikipedia's search service).
      *
-     * @param query the query string to be searched up
+     * @param query the query string to be searched up, and is not null
      * @param limit the max number of page titles to return
      * @return list of up to {@code limit} page titles that match the query
      */
@@ -137,7 +137,7 @@ public class WikiMediator {
      * Given a page title, return the text associated with the Wikipedia page
      * that matches the page title.
      *
-     * @param pageTitle the page title to retrieve text from
+     * @param pageTitle the page title to retrieve text from, and is not null
      * @return the text associated with the Wikipedia page that matches
      * {@code pageTitle}
      */

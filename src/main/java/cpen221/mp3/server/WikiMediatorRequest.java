@@ -87,7 +87,6 @@ public class WikiMediatorRequest {
             this.id = id;
             this.status = status;
             this.response = response;
-
         }
 
         /**
