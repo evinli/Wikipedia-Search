@@ -24,6 +24,7 @@ public class WikiTests {
     public static WikiMediator wikiMed9;
     public static WikiMediator wikiMed10;
     public static WikiMediator wikiMedThreadSafe;
+    public static WikiMediator wikiMedThreadSafe1;
 
     @BeforeAll
     public static void setUpTests() {
@@ -39,6 +40,7 @@ public class WikiTests {
         wikiMed9 = new WikiMediator(20, 10);
         wikiMed10 = new WikiMediator(20, 10);
         wikiMedThreadSafe = new WikiMediator(3, 5);
+        wikiMedThreadSafe1 = new WikiMediator(3,5);
     }
 
     @Test
@@ -278,26 +280,26 @@ public class WikiTests {
         expectedList.add("market");
 
         Thread t1 = new Thread(() -> {
-            wikiMedThreadSafe.getPage("market");
+            wikiMedThreadSafe1.getPage("market");
             latch.countDown();
         });
 
         Thread t2 = new Thread(() -> {
-            wikiMedThreadSafe.getPage("math");
+            wikiMedThreadSafe1.getPage("math");
             latch.countDown();
         });
 
         Thread t3 = new Thread(() -> {
-            wikiMedThreadSafe.getPage("math");
+            wikiMedThreadSafe1.getPage("math");
             latch.countDown();
         });
 
         Thread t4 = new Thread(() -> {
-            wikiMedThreadSafe.getPage("math");
+            wikiMedThreadSafe1.getPage("math");
             latch.countDown();
         });
         Thread t5 = new Thread(() -> {
-            wikiMedThreadSafe.search("math", 2);
+            wikiMedThreadSafe1.search("math", 2);
             latch.countDown();
         });
 
@@ -308,10 +310,10 @@ public class WikiTests {
         t5.start();
 
         latch.await();
-        result = wikiMedThreadSafe.windowedPeakLoad();
+        result = wikiMedThreadSafe1.windowedPeakLoad();
 
         Assertions.assertEquals(6, result);
-        Assertions.assertLinesMatch(expectedList, wikiMedThreadSafe.
+        Assertions.assertLinesMatch(expectedList, wikiMedThreadSafe1.
                 zeitgeist(2));
     }
 }

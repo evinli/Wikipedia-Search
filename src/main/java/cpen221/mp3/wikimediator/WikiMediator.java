@@ -69,6 +69,23 @@ public class WikiMediator {
         }
     }
 
+    private void checkRep(){
+        List<Integer> compare = new ArrayList<>();
+        List<Integer> calls = new ArrayList<>(methodsCalls);
+
+        for(String key: pageSearches.keySet()){
+            for(int index = 0; index < pageSearches.get(key).size(); index++){
+                compare.add(pageSearches.get(key).get(index));
+            }
+        }
+        Collections.sort(compare);
+        Collections.sort(calls);
+
+        for(int index = 0; index < compare.size(); index++){
+            assert(compare.get(index) == calls.get(index));
+        }
+    }
+
     /**
      * Creates a mediator service that accesses Wikipedia to obtain pages
      * and other relevant information. In addition to collecting statistical
@@ -128,7 +145,7 @@ public class WikiMediator {
                 methodsCalls.add(absoluteTime - startTime);
             }
         }
-
+        checkRep();
         return matches;
     }
 
@@ -160,7 +177,7 @@ public class WikiMediator {
             pageSearches.get(pageTitle).add(absoluteTime - startTime);
             methodsCalls.add(absoluteTime - startTime);
         }
-
+        checkRep();
         return text;
     }
 
@@ -190,6 +207,7 @@ public class WikiMediator {
                 Integer>comparingByValue().reversed()).limit(limit).map(e ->
                 e.getKey()).collect(Collectors.toList());
 
+        checkRep();
         return mostCommon;
     }
 
@@ -232,6 +250,7 @@ public class WikiMediator {
                 Integer>comparingByValue().reversed()).limit(maxItems).map(e ->
                 e.getKey()).collect(Collectors.toList());
 
+        checkRep();
         return mostFrequent;
     }
 
@@ -275,6 +294,7 @@ public class WikiMediator {
         }
 
         maxRequest = tempMax;
+        checkRep();
         return maxRequest;
     }
 
