@@ -113,11 +113,13 @@ public class WikiMediator {
      * @return list of up to {@code limit} page titles that match the query
      */
     public List<String> search(String query, int limit) {
-        List<String> matches = wiki.search(query, limit);
+
+        List<String> matches = new ArrayList<>();
         int absoluteTime = (int) (System.currentTimeMillis() /
                 CONVERT_MS_TO_S);
-
         synchronized (this) {
+            matches = wiki.search(query, limit);
+
             if (pageSearches.containsKey(query)) {
                 pageSearches.get(query).add(absoluteTime - startTime);
                 methodsCalls.add(absoluteTime - startTime);
