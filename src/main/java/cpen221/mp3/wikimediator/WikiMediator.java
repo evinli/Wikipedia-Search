@@ -70,22 +70,6 @@ public class WikiMediator {
         }
     }
 
-    private void checkRep(){
-        List<Integer> compare = new ArrayList<>();
-        List<Integer> calls = new ArrayList<>(methodsCalls);
-
-        for(String key: pageSearches.keySet()){
-            for(int index = 0; index < pageSearches.get(key).size(); index++){
-                compare.add(pageSearches.get(key).get(index));
-            }
-        }
-        Collections.sort(compare);
-        Collections.sort(calls);
-
-        for(int index = 0; index < compare.size(); index++){
-            assert(compare.get(index) == calls.get(index));
-        }
-    }
 
     /**
      * Creates a mediator service that accesses Wikipedia to obtain pages
@@ -120,7 +104,25 @@ public class WikiMediator {
         cache = new FSFTBuffer<>(capacity, stalenessInterval);
     }
 
+    /**
+     * check rep invariant for WikiMediator Class
+     */
+    private synchronized void checkRep(){
+        List<Integer> compare = new ArrayList<>();
+        List<Integer> calls = new ArrayList<>(methodsCalls);
 
+        for(String key: pageSearches.keySet()){
+            for(int index = 0; index < pageSearches.get(key).size(); index++){
+                compare.add(pageSearches.get(key).get(index));
+            }
+        }
+        Collections.sort(compare);
+        Collections.sort(calls);
+
+        for(int index = 0; index < compare.size(); index++){
+            assert(compare.get(index) == calls.get(index));
+        }
+    }
     /**
      * Given a query, return up to limit page titles that match the query string
      * (per Wikipedia's search service).
@@ -129,12 +131,11 @@ public class WikiMediator {
      * @param limit the max number of page titles to return
      * @return list of up to {@code limit} page titles that match the query
      */
-    public List<String> search(String query, int limit) {
+    public synchronized List<String> search(String query, int limit) {
 
         List<String> matches = new ArrayList<>();
         int absoluteTime = (int) (System.currentTimeMillis() /
                 CONVERT_MS_TO_S);
-        synchronized (this) {
             matches = wiki.search(query, limit);
 
             if (pageSearches.containsKey(query)) {
@@ -145,8 +146,9 @@ public class WikiMediator {
                 pageSearches.get(query).add(absoluteTime - startTime);
                 methodsCalls.add(absoluteTime - startTime);
             }
-        }
-        checkRep();
+            checkRep();
+
+
         return matches;
     }
 
@@ -203,12 +205,13 @@ public class WikiMediator {
                 int size = pageSearches.get(key).size();
                 reduced.put(key, size);
             }
+            checkRep();
         }
         mostCommon = reduced.entrySet().stream().sorted(Map.Entry.<String,
                 Integer>comparingByValue().reversed()).limit(limit).map(e ->
                 e.getKey()).collect(Collectors.toList());
 
-        checkRep();
+
         return mostCommon;
     }
 
@@ -246,12 +249,13 @@ public class WikiMediator {
                     reduced.put(key, count);
                 }
             }
+            checkRep();
         }
         mostFrequent = reduced.entrySet().stream().sorted(Map.Entry.<String,
                 Integer>comparingByValue().reversed()).limit(maxItems).map(e ->
                 e.getKey()).collect(Collectors.toList());
 
-        checkRep();
+
         return mostFrequent;
     }
 
@@ -292,10 +296,11 @@ public class WikiMediator {
                     }
                 }
             }
+            maxRequest = tempMax;
+            checkRep();
         }
 
-        maxRequest = tempMax;
-        checkRep();
+
         return maxRequest;
     }
 
