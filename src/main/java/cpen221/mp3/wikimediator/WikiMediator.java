@@ -22,7 +22,6 @@ public class WikiMediator {
     private HashMap<String, ArrayList<Integer>> pageSearches;
     private ArrayList<Integer> methodsCalls;
     private int startTime;
-
     /**
      * Abstraction function:
      *      AF(cache) = data cache that stores all wikipedia pages for a given
@@ -55,7 +54,7 @@ public class WikiMediator {
      */
     class WikiMediatorData {
         private HashMap<String, ArrayList<Integer>> pageSearch;
-        private ArrayList methodCall;
+        private ArrayList<Integer> methodCall;
         private int startTime;
 
         /**
@@ -63,7 +62,7 @@ public class WikiMediator {
          * Parameters are a subset of the WikiMediator class variables
          */
         public WikiMediatorData(HashMap<String, ArrayList<Integer>> pageSearch,
-                                ArrayList methodCall, int startTime) {
+                                ArrayList<Integer> methodCall, int startTime) {
             this.pageSearch = pageSearch;
             this.methodCall = methodCall;
             this.startTime = startTime;
@@ -114,7 +113,7 @@ public class WikiMediator {
      */
     public List<String> search(String query, int limit) {
 
-        List<String> matches = new ArrayList<>();
+        List<String> matches;
         int absoluteTime = (int) (System.currentTimeMillis() /
                 CONVERT_MS_TO_S);
         synchronized (this) {
@@ -300,7 +299,8 @@ public class WikiMediator {
      * on the shortest computed path; if no path exists, return an empty list
      */
     public List<String> shortestPath(String pageTitle1, String pageTitle2,
-                                     int timeout) throws TimeoutException {
+                                     int timeout) throws
+            TimeoutException {
         return null;
     }
 
