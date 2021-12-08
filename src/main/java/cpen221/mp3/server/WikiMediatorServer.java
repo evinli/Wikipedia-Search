@@ -15,6 +15,24 @@ public class WikiMediatorServer {
     private ServerSocket serverSocket;
 
     /**
+     * Abstraction function:
+     *      1
+     *      2
+     */
+
+    /**
+     * Rep invariant:
+     *      1
+     *      2
+     */
+
+    /**
+     * Thread-safety argument:
+     *      1
+     *      2
+     */
+
+    /**
      * Start a server at a given port number, with the ability to process
      * up to n requests concurrently.
      *
@@ -32,7 +50,6 @@ public class WikiMediatorServer {
         } catch (IOException e) {
             throw new RuntimeException();
         }
-
     }
 
     /**

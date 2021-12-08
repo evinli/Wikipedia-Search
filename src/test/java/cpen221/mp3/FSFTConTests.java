@@ -23,7 +23,7 @@ public class FSFTConTests {
     }
 
     @Test
-    public void testMultithreadingPuts() throws InterruptedException {
+    public void testMultithreadingPuts_NotStale() throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(3);
 
         Thread t1 = new Thread(() -> {
@@ -43,22 +43,18 @@ public class FSFTConTests {
         t2.start();
         t3.start();
 
-        // waits for all threads to finish executing
         latch.await();
 
-        // all objects should still be in buffer
         Assertions.assertTrue(buffer1.touch("a"));
         Assertions.assertTrue(buffer1.touch("b"));
         Assertions.assertTrue(buffer1.touch("c"));
 
-        // all objects should still be in buffer
         Assertions.assertTrue(buffer1.update(b1));
         Assertions.assertTrue(buffer1.update(b2));
         Assertions.assertTrue(buffer1.update(b3));
 
         Thread.sleep(2 * 1000);
 
-        // expected: objects still in buffer
         try {
             Assertions.assertEquals(b1, buffer1.get("a"));
             Assertions.assertEquals(b2, buffer1.get("b"));
@@ -69,7 +65,7 @@ public class FSFTConTests {
     }
 
     @Test
-    public void testMultithreadingUpdates() throws InterruptedException {
+    public void testMultithreadingUpdates_Stale() throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(3);
         Buffer b5 = new Buffer("a", "updatedaaa");
         Buffer b6 = new Buffer("b", "updatedbbb");
@@ -96,17 +92,14 @@ public class FSFTConTests {
         t2.start();
         t3.start();
 
-        // waits for all threads to finish executing
         latch.await();
 
-        // all objects should still be in buffer
         Assertions.assertTrue(buffer1.touch("a"));
         Assertions.assertTrue(buffer1.touch("b"));
         Assertions.assertTrue(buffer1.touch("c"));
 
         Thread.sleep(3 * 1000);
 
-        // expected: objects timed out
         try {
             Assertions.assertEquals(b5, buffer1.get("a"));
             Assertions.assertEquals(b6, buffer1.get("b"));

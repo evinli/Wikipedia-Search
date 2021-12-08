@@ -266,7 +266,6 @@ public class WikiTests {
         result = wikiMedThreadSafe.windowedPeakLoad();
 
         Assertions.assertEquals(5, result);
-
     }
 
     @Test
@@ -314,6 +313,5 @@ public class WikiTests {
         Assertions.assertEquals(6, result);
         Assertions.assertLinesMatch(expectedList, wikiMedThreadSafe.
                 zeitgeist(2));
-
     }
 }

@@ -6,8 +6,24 @@ import java.net.Socket;
 public class WikiMediatorClient {
     private Socket socket;
     private BufferedReader in;
-    // Rep invariant: socket, in, out != null
     private PrintWriter out;
+
+    /**
+     * Abstraction function:
+     *      1
+     *      2
+     */
+
+    /**
+     * Rep invariant:
+     *      socket, in, out != null
+     */
+
+    /**
+     * Thread-safety argument:
+     *      1
+     *      2
+     */
 
     /**
      * Make a WikiMediatorClient and connect it to a server running on

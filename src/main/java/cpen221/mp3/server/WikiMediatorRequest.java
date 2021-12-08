@@ -10,22 +10,40 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public class WikiMediatorRequest {
-    private String id; //all
-    private String type; //all
-    private String query; //search
-    private int limit; //search / zeitgeist
-    private String pageTitle; //getPage
-    private int timeLimitInSeconds; //trending
-    private int maxItems; //trending
-    private int timeout; //all
-    private int timeWindowInSeconds; //windowedPeakLoad
+    private String id;
+    private String type;
+    private String query;
+    private int limit;
+    private String pageTitle;
+    private int timeLimitInSeconds;
+    private int maxItems;
+    private int timeout;
+    private int timeWindowInSeconds;
+
+    /**
+     * Abstraction function:
+     *      1
+     *      2
+     */
+
+    /**
+     * Rep invariant:
+     *      1
+     *      2
+     */
+
+    /**
+     * Thread-safety argument:
+     *      1
+     *      2
+     */
 
     /**
      * Interface to be implemented by response classes.
      */
     interface WikiMediatorResponse {
         /**
-         * Generates properly formatted json response.
+         * Generates properly formatted JSON response.
          * @return JSON response formatted by GSON
          */
         public String respond();

@@ -35,7 +35,6 @@ public class FSFTTests {
         Assertions.assertTrue(buffer1.put(b3));
         Assertions.assertFalse(buffer1.put(null));
 
-        // expected: invalid object, evicted
         try {
             Assertions.assertEquals(b1, buffer1.get("a"));
         } catch (InvalidObjectException e) {
@@ -51,11 +50,9 @@ public class FSFTTests {
         buffer3.put(b3);
         Thread.sleep(1 * 1000);
 
-        // repeated put shouldn't change access time
         buffer3.put(b1);
         Thread.sleep(1 * 1000);
 
-        // expected: invalid object, timed out
         try {
             Assertions.assertEquals(b1, buffer3.get("a"));
         } catch (InvalidObjectException e) {
@@ -72,7 +69,6 @@ public class FSFTTests {
         buffer2.touch("a");
         Thread.sleep(2 * 1000);
 
-        // expected: object still in buffer
         try {
             Assertions.assertEquals(b1, buffer2.get("a"));
         } catch (InvalidObjectException e) {
@@ -89,7 +85,6 @@ public class FSFTTests {
         Assertions.assertFalse(buffer2.touch("a"));
         Thread.sleep(2 * 1000);
 
-        // expected: object still in buffer
         try {
             Assertions.assertEquals(b1, buffer2.get("a"));
         } catch (InvalidObjectException e) {
@@ -104,7 +99,6 @@ public class FSFTTests {
         buffer2.put(b3);
         Thread.sleep(3 * 1000);
 
-        // can't touch a stale object
         Assertions.assertFalse(buffer2.update(b1));
     }
 
@@ -115,7 +109,6 @@ public class FSFTTests {
         buffer2.put(b3);
         Thread.sleep(2 * 1000);
 
-        // can reset timeout timer for non-stale object
         Assertions.assertTrue(buffer2.touch("a"));
     }
 
@@ -132,20 +125,17 @@ public class FSFTTests {
         Thread.sleep(1 * 1000);
         buffer5.touch("c");
 
-        // expected: object still in buffer
         try {
             Assertions.assertEquals(b1, buffer5.get("a"));
         } catch (InvalidObjectException e) {
             e.printStackTrace();
         }
 
-        // forces b2 to be evicted since capacity is maxed out
         buffer5.put(b4);
         Assertions.assertFalse(buffer5.touch("b"));
 
         Thread.sleep(4 * 1000);
 
-        // only b3 and b4 are still in buffer
         Assertions.assertFalse(buffer5.touch("a"));
         Assertions.assertFalse(buffer5.touch("b"));
         Assertions.assertTrue(buffer5.touch("c"));
@@ -162,7 +152,6 @@ public class FSFTTests {
         Buffer b5 = new Buffer("a", "updated_aaa");
         Assertions.assertTrue(buffer6.update(b5));
 
-        // expected: b5 is the updated version of b1
         try {
             Assertions.assertEquals(b5, buffer6.get("a"));
         } catch (InvalidObjectException e) {
@@ -180,7 +169,6 @@ public class FSFTTests {
         Buffer b5 = new Buffer("a", "updated_aaa");
         Assertions.assertTrue(buffer7.update(b5));
 
-        // expected: b5 is the updated version of b1
         try {
             Assertions.assertEquals(b5, buffer7.get("a"));
             Assertions.assertEquals("updated_aaa",

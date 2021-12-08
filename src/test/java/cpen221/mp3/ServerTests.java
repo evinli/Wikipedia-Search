@@ -27,9 +27,7 @@ public class ServerTests {
         try {
             client.sendRequest(request);
             String reply = client.getReply();
-            //client.close();
             Assertions.assertEquals(true, reply.contains("Obama"));
-            //Assertions.assertNotNull(reply);
         } catch (Exception IOException) {
             throw new AssertionFailedError();
         }
@@ -84,7 +82,6 @@ public class ServerTests {
         try {
             client.sendRequest(request);
             String reply = client.getReply();
-            //client.close();
             Assertions.assertEquals(true, reply.contains("success"));
         } catch (Exception IOException) {
             throw new AssertionFailedError();
@@ -97,7 +94,6 @@ public class ServerTests {
         try {
             client.sendRequest(request);
             String reply = client.getReply();
-            //client.close();
             Assertions.assertEquals("{\"id\":\"ten\",\"" +
                     "response\":\"bye\"}", reply);
         } catch (Exception IOException) {
